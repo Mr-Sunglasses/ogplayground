@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { generateOGTags } from "@/lib/og-parser"
-import { Wand2, Copy } from "lucide-react"
+import { Wand2 } from "lucide-react"
 import toast from "react-hot-toast"
 
 interface OGGeneratorProps {

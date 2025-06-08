@@ -2,7 +2,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { ValidationIssue } from "@/lib/og-parser"
 import { AlertTriangle, CheckCircle, Info, XCircle, Copy, ChevronDown, ChevronUp } from "lucide-react"

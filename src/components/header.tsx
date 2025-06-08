@@ -3,18 +3,19 @@
 import { ModeToggle } from "@/components/mode-toggle"
 import { Button } from "@/components/ui/button"
 import { Github, ExternalLink } from "lucide-react"
+import Link from "next/link"
 
 export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
         <div className="mr-4 flex">
-          <a className="mr-6 flex items-center space-x-2" href="/">
+          <Link className="mr-6 flex items-center space-x-2" href="/">
             <div className="h-6 w-6 bg-gradient-to-br from-blue-600 to-purple-600 rounded-sm flex items-center justify-center">
               <span className="text-white text-xs font-bold">OG</span>
             </div>
             <span className="font-bold inline-block">OGPlayground</span>
-          </a>
+          </Link>
         </div>
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <div className="w-full flex-1 md:w-auto md:flex-none">
@@ -25,7 +26,7 @@ export function Header() {
           <nav className="flex items-center space-x-2">
             <Button variant="ghost" size="sm" asChild>
               <a
-                href="https://github.com/your-username/ogplayground"
+                href="https://github.com/Mr-Sunglasses/ogplayground"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center space-x-1"

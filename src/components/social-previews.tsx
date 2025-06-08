@@ -1,9 +1,9 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { OGData } from "@/lib/og-parser"
+import Image from "next/image"
 import { Facebook, Twitter, Linkedin, MessageCircle, Heart, Share, MessageSquare, ThumbsUp, Send } from "lucide-react"
 
 interface SocialPreviewsProps {
@@ -109,13 +109,12 @@ function FacebookPreview({ ogData, hasImage }: { ogData: OGData; hasImage: boole
           <div className="border-b border-gray-200 dark:border-gray-700">
             {hasImage && (
               <div className="aspect-[1.91/1] bg-gray-200 dark:bg-gray-700 relative overflow-hidden">
-                <img
-                  src={ogData.image}
+                <Image
+                  src={ogData.image || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200' viewBox='0 0 400 200'%3E%3Crect width='400' height='200' fill='%23f3f4f6'/%3E%3Ctext x='200' y='100' text-anchor='middle' dy='0.3em' font-family='Arial' font-size='14' fill='%236b7280'%3EImage not found%3C/text%3E%3C/svg%3E"}
                   alt={ogData.title || "Preview"}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200' viewBox='0 0 400 200'%3E%3Crect width='400' height='200' fill='%23f3f4f6'/%3E%3Ctext x='200' y='100' text-anchor='middle' dy='0.3em' font-family='Arial' font-size='14' fill='%236b7280'%3EImage not found%3C/text%3E%3C/svg%3E"
-                  }}
+                  fill
+                  className="object-cover"
+                  unoptimized
                 />
               </div>
             )}
@@ -187,14 +186,13 @@ function TwitterPreview({ ogData, hasImage }: { ogData: OGData; hasImage: boolea
           {/* Twitter Card */}
           <div className="border border-gray-800 dark:border-gray-700 rounded-lg m-3 overflow-hidden">
             {hasImage && (
-              <div className={`bg-gray-200 dark:bg-gray-700 ${isLargeCard ? "aspect-[2/1]" : "aspect-square w-24 sm:w-32 float-left mr-3"}`}>
-                <img
-                  src={ogData.image}
+              <div className={`bg-gray-200 dark:bg-gray-700 relative ${isLargeCard ? "aspect-[2/1]" : "aspect-square w-24 sm:w-32 float-left mr-3"}`}>
+                <Image
+                  src={ogData.image || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200' viewBox='0 0 400 200'%3E%3Crect width='400' height='200' fill='%23374151'/%3E%3Ctext x='200' y='100' text-anchor='middle' dy='0.3em' font-family='Arial' font-size='14' fill='%239ca3af'%3EImage not found%3C/text%3E%3C/svg%3E"}
                   alt={ogData.title || "Preview"}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200' viewBox='0 0 400 200'%3E%3Crect width='400' height='200' fill='%23374151'/%3E%3Ctext x='200' y='100' text-anchor='middle' dy='0.3em' font-family='Arial' font-size='14' fill='%239ca3af'%3EImage not found%3C/text%3E%3C/svg%3E"
-                  }}
+                  fill
+                  className="object-cover"
+                  unoptimized
                 />
               </div>
             )}
@@ -259,14 +257,13 @@ function LinkedInPreview({ ogData, hasImage }: { ogData: OGData; hasImage: boole
           {/* LinkedIn Card */}
           <div className="border-t border-gray-200 dark:border-gray-700">
             {hasImage && (
-              <div className="aspect-[2/1] bg-gray-200 dark:bg-gray-700">
-                <img
-                  src={ogData.image}
+              <div className="aspect-[2/1] bg-gray-200 dark:bg-gray-700 relative">
+                <Image
+                  src={ogData.image || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200' viewBox='0 0 400 200'%3E%3Crect width='400' height='200' fill='%23f3f4f6'/%3E%3Ctext x='200' y='100' text-anchor='middle' dy='0.3em' font-family='Arial' font-size='14' fill='%236b7280'%3EImage not found%3C/text%3E%3C/svg%3E"}
                   alt={ogData.title || "Preview"}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200' viewBox='0 0 400 200'%3E%3Crect width='400' height='200' fill='%23f3f4f6'/%3E%3Ctext x='200' y='100' text-anchor='middle' dy='0.3em' font-family='Arial' font-size='14' fill='%236b7280'%3EImage not found%3C/text%3E%3C/svg%3E"
-                  }}
+                  fill
+                  className="object-cover"
+                  unoptimized
                 />
               </div>
             )}
@@ -346,14 +343,13 @@ function DiscordPreview({ ogData, hasImage }: { ogData: OGData; hasImage: boolea
                       </p>
                     </div>
                     {hasImage && (
-                      <div className="w-full sm:w-20 h-20 sm:h-20 bg-gray-600 rounded overflow-hidden flex-shrink-0">
-                        <img
-                          src={ogData.image}
+                      <div className="w-full sm:w-20 h-20 sm:h-20 bg-gray-600 rounded overflow-hidden flex-shrink-0 relative">
+                        <Image
+                          src={ogData.image || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%234b5563'/%3E%3Ctext x='40' y='40' text-anchor='middle' dy='0.3em' font-family='Arial' font-size='10' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E"}
                           alt={ogData.title || "Preview"}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%234b5563'/%3E%3Ctext x='40' y='40' text-anchor='middle' dy='0.3em' font-family='Arial' font-size='10' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E"
-                          }}
+                          fill
+                          className="object-cover"
+                          unoptimized
                         />
                       </div>
                     )}
