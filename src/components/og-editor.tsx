@@ -149,7 +149,6 @@ export function OGEditor({ value, onChange }: OGEditorProps) {
               lineNumbers: "on",
               wordWrap: "on",
               folding: true,
-              bracketMatching: "always",
               autoIndent: "full",
               formatOnPaste: true,
               formatOnType: true,
