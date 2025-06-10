@@ -75,7 +75,7 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/ogplayground.git
+git clone https://github.com/Mr-Sunglasses/ogplayground.git
 cd ogplayground
 
 # Install dependencies
@@ -313,18 +313,6 @@ The project uses a custom Tailwind configuration with:
 
 ## 🚀 Deployment
 
-### Vercel (Recommended)
-```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel
-
-# Production deployment
-vercel --prod
-```
-
 ### Netlify
 ```bash
 # Build
@@ -396,9 +384,9 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ## 📞 Support
 
-- **Issues** - [GitHub Issues](https://github.com/yourusername/ogplayground/issues)
-- **Discussions** - [GitHub Discussions](https://github.com/yourusername/ogplayground/discussions)
-- **Email** - your.email@example.com
+- **Issues** - [GitHub Issues](https://github.com/Mr-Sunglasses/ogplayground/issues)
+- **Discussions** - [GitHub Discussions](https://github.com/Mr-Sunglasses/ogplayground/discussions)
+- **Email** - itskanishkp.py@gmail.com
 
 ---
 
