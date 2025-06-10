@@ -8,9 +8,22 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Globe, Loader2, AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
+import { logger } from "@/lib/logger";
 
 interface UrlFetcherProps {
   onOGTagsFetched: (html: string) => void;
+}
+
+// Function to extract OG tags from HTML content
+function extractOGTags(html: string): string {
+  const ogTagRegex = /<meta\s+(?:property|name)=["'](?:og:|twitter:)[^"']*["'][^>]*>/gi;
+  const matches = html.match(ogTagRegex);
+  
+  if (matches && matches.length > 0) {
+    return matches.join('\n');
+  }
+  
+  return '';
 }
 
 export function UrlFetcher({ onOGTagsFetched }: UrlFetcherProps) {
@@ -42,123 +55,78 @@ export function UrlFetcher({ onOGTagsFetched }: UrlFetcherProps) {
     setError(null);
 
     try {
-      // First, try our own API route (recommended approach)
+      logger.info('Starting URL fetch process', { url: processedUrl }, 'URLFetcher');
+
+      // Try internal API route first
       try {
-        console.log("Trying internal API route...");
+        logger.debug('Trying internal API route', { url: processedUrl }, 'URLFetcher');
+        
         const response = await fetch("/api/fetch-url", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ url: processedUrl }),
-        })
+        });
 
-        const data = await response.json();
-
-        if (response.ok && data.html) {
-          onOGTagsFetched(data.html);
-          toast.success("OG tags fetched successfully!");
-          return; // Success, exit early
-        } else {
-          throw new Error(data.error || "API route failed");
+        if (response.ok) {
+          const result = await response.json();
+          if (result.ogTags) {
+            onOGTagsFetched(result.ogTags);
+            toast.success("OG tags fetched successfully!");
+            return;
+          }
         }
+        throw new Error("Internal API failed");
       } catch (apiError) {
-        console.warn("Internal API failed:", apiError);
-        // Continue to fallback proxies
+        logger.warn('Internal API failed', { error: apiError, url: processedUrl }, 'URLFetcher');
       }
 
-      // Fallback to external CORS proxy services
-      console.log("Trying external proxy services as fallback...");
-      const proxies = [
+      // Fallback to proxy services
+      logger.info('Trying external proxy services as fallback', { url: processedUrl }, 'URLFetcher');
+      
+      const proxyServices = [
         `https://api.allorigins.win/get?url=${encodeURIComponent(processedUrl)}`,
-        `https://corsproxy.io/?${encodeURIComponent(processedUrl)}`
-      ]
+        `https://cors-anywhere.herokuapp.com/${processedUrl}`,
+        `https://thingproxy.freeboard.io/fetch/${processedUrl}`,
+      ];
 
-      let success = false;
-      let lastError = "";
-
-      for (const proxyUrl of proxies) {
+      for (const proxyUrl of proxyServices) {
         try {
-          console.log(`Trying proxy: ${proxyUrl}`);
-
+          logger.debug('Trying proxy service', { proxyUrl, originalUrl: processedUrl }, 'URLFetcher');
+          
           const response = await fetch(proxyUrl, {
-            method: "GET",
             headers: {
-              Accept: "application/json",
+              "User-Agent": "Mozilla/5.0 (compatible; OGPlayground/1.0)",
+              "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
             },
           });
 
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-
-          let htmlContent = "";
-
-          // Handle different proxy response formats
-          if (proxyUrl.includes("allorigins.win")) {
-            const data = await response.json();
-            if (data.contents) {
-              htmlContent = data.contents;
-            } else {
-              throw new Error("No content in allorigins response");
+          if (response.ok) {
+            let html = await response.text();
+            
+            // Handle allorigins response format
+            if (proxyUrl.includes('allorigins')) {
+              const data = JSON.parse(html);
+              html = data.contents;
             }
-          } else if (proxyUrl.includes("corsproxy.io")) {
-            htmlContent = await response.text();
-          } else {
-            htmlContent = await response.text();
-          }
 
-          if (htmlContent && htmlContent.length > 0) {
-            onOGTagsFetched(htmlContent);
-            toast.success("OG tags fetched via proxy!");
-            success = true;
-            break;
-          } else {
-            throw new Error("Empty response content");
+            const ogTags = extractOGTags(html);
+            if (ogTags && ogTags.trim()) {
+              onOGTagsFetched(ogTags);
+              toast.success("OG tags fetched successfully!");
+              return;
+            }
           }
         } catch (proxyError) {
-          console.warn(`Proxy ${proxyUrl} failed:`, proxyError);
-          lastError =
-            proxyError instanceof Error ? proxyError.message : "Unknown error";
-          continue;
+          logger.warn('Proxy service failed', { proxyUrl, error: proxyError }, 'URLFetcher');
         }
       }
 
-      if (!success) {
-        throw new Error(lastError || "All proxy services failed");
-      }
+      throw new Error("All fetch methods failed. The URL might not be accessible or have CORS restrictions.");
     } catch (err) {
-      console.error("URL fetch error:", err);
-      const errorMessage = err instanceof Error ? err.message : "Unknown error";
-
-      if (
-        errorMessage.includes("CORS") ||
-        errorMessage.includes("cross-origin")
-      ) {
-        setError(
-          "CORS error: The website blocks cross-origin requests. Try a different URL or implement a backend proxy.",
-        );
-      } else if (
-        errorMessage.includes("network") ||
-        errorMessage.includes("fetch")
-      ) {
-        setError(
-          "Network error: Please check your internet connection and try again.",
-        );
-      } else if (
-        errorMessage.includes("404") ||
-        errorMessage.includes("not found")
-      ) {
-        setError(
-          "URL not found (404). Please check if the URL is correct and accessible.",
-        );
-      } else {
-        setError(
-          `Failed to fetch URL: ${errorMessage}. This might be due to CORS restrictions or the proxy service being unavailable.`,
-        );
-      }
-
-      toast.error("Failed to fetch URL");
+      const errorMessage = err instanceof Error ? err.message : "Failed to fetch URL";
+      logger.error('URL fetch error', { url: processedUrl, error: errorMessage }, 'URLFetcher');
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

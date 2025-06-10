@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useTheme } from "next-themes";
 import { Copy, FileText, Package, Calendar, Download, Code, Type } from "lucide-react";
 import toast from "react-hot-toast";
+import { logger } from "@/lib/logger";
 
 interface OGEditorProps {
   value: string;
@@ -73,7 +74,7 @@ function MonacoEditorWrapper({
     // Set a timeout for mobile Monaco loading
     if (isMobile) {
       const timeout = setTimeout(() => {
-        console.warn('Monaco editor timeout on mobile, falling back to simple editor');
+        logger.warn('Monaco editor timeout on mobile, falling back to simple editor', { timeout: 5000 }, 'MonacoEditor');
         setIsTimeout(true);
         onError();
       }, 5000); // 5 seconds timeout for mobile
@@ -111,10 +112,10 @@ function MonacoEditorWrapper({
         value={value}
         onChange={(value) => onChange(value || "")}
         onMount={() => {
-          console.log('Monaco editor mounted successfully');
+          logger.info('Monaco editor mounted successfully', {}, 'MonacoEditor');
         }}
         beforeMount={() => {
-          console.log('Monaco editor about to mount');
+          logger.debug('Monaco editor about to mount', {}, 'MonacoEditor');
         }}
         loading={
           <div className="h-full flex items-center justify-center">
@@ -199,7 +200,7 @@ export function OGEditor({ value, onChange }: OGEditorProps) {
     // Add error handling for Monaco editor
     const handleError = (event: ErrorEvent) => {
       if (event.message && event.message.includes('monaco')) {
-        console.warn('Monaco editor error detected, falling back to simple editor');
+        logger.warn('Monaco editor error detected, falling back to simple editor', { error: event.message }, 'MonacoEditor');
         setEditorError(true);
       }
     };
