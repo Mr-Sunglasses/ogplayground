@@ -24,9 +24,16 @@ export function UrlFetcher({ onOGTagsFetched }: UrlFetcherProps) {
       return
     }
 
+    // Auto-prepend https:// if no protocol specified
+    let processedUrl = url.trim()
+    if (!processedUrl.match(/^https?:\/\//)) {
+      processedUrl = `https://${processedUrl}`
+      console.log(`Auto-prepended HTTPS: ${processedUrl}`)
+    }
+
     // Basic URL validation
     try {
-      new URL(url)
+      new URL(processedUrl)
     } catch {
       setError("Please enter a valid URL (include http:// or https://)")
       return
@@ -44,7 +51,7 @@ export function UrlFetcher({ onOGTagsFetched }: UrlFetcherProps) {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ url }),
+          body: JSON.stringify({ url: processedUrl }),
         })
 
         const data = await response.json()
@@ -64,8 +71,8 @@ export function UrlFetcher({ onOGTagsFetched }: UrlFetcherProps) {
       // Fallback to external CORS proxy services
       console.log("Trying external proxy services as fallback...")
       const proxies = [
-        `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-        `https://corsproxy.io/?${encodeURIComponent(url)}`
+        `https://api.allorigins.win/get?url=${encodeURIComponent(processedUrl)}`,
+        `https://corsproxy.io/?${encodeURIComponent(processedUrl)}`
       ]
 
       let success = false
@@ -186,7 +193,7 @@ export function UrlFetcher({ onOGTagsFetched }: UrlFetcherProps) {
         <div className="flex space-x-2">
           <Input
             type="url"
-            placeholder="https://example.com"
+            placeholder="example.com or https://example.com"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             onKeyPress={handleKeyPress}
