@@ -95,6 +95,18 @@ npm run dev
 open http://localhost:3000
 ```
 
+#### Using Docker
+```bash
+# install the docker image
+docker pull mrsunglasses/ogplayground:latest
+
+# run the project
+docker run --name ogplayground-container -p 3000:3000 ogplayground:latest
+
+# Open in browser
+open http://localhost:3000
+```
+
 ### Build for Production
 
 ```bash
