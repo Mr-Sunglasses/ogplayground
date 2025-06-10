@@ -27,6 +27,20 @@ export const metadata: Metadata = {
     "testing",
   ],
   authors: [{ name: "OGPlayground" }],
+  icons: {
+    icon: [
+      {
+        url: "/icon.svg",
+        type: "image/svg+xml",
+      },
+    ],
+    apple: [
+      {
+        url: "/apple-icon.svg",
+        type: "image/svg+xml",
+      },
+    ],
+  },
   openGraph: {
     title: "OGPlayground - Open Graph Protocol Testing Playground",
     description:
