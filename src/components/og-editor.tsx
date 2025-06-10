@@ -110,7 +110,7 @@ function MonacoEditorWrapper({
         theme={theme === "dark" ? "vs-dark" : "light"}
         value={value}
         onChange={(value) => onChange(value || "")}
-        onMount={(editor) => {
+        onMount={() => {
           console.log('Monaco editor mounted successfully');
         }}
         beforeMount={() => {
@@ -178,7 +178,6 @@ export function OGEditor({ value, onChange }: OGEditorProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [useSimpleEditor, setUseSimpleEditor] = useState(false);
   const [editorError, setEditorError] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     setMounted(true);
