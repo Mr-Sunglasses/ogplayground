@@ -8,13 +8,13 @@ import Link from "next/link";
 export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
-        <div className="mr-4 flex">
-          <Link className="mr-6 flex items-center space-x-2" href="/">
-            <div className="h-6 w-6 bg-gradient-to-br from-blue-600 to-purple-600 rounded-sm flex items-center justify-center">
-              <span className="text-white text-xs font-bold">OG</span>
+      <div className="container flex h-14 items-center px-4">
+        <div className="mr-6 flex">
+          <Link className="mr-6 flex items-center space-x-3" href="/">
+            <div className="h-8 w-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-md flex items-center justify-center shadow-sm">
+              <span className="text-white text-sm font-bold">OG</span>
             </div>
-            <span className="font-bold inline-block">OGPlayground</span>
+            <span className="font-bold text-lg inline-block">OGPlayground</span>
           </Link>
         </div>
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
