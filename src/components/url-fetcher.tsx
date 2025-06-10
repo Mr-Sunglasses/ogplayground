@@ -28,7 +28,6 @@ export function UrlFetcher({ onOGTagsFetched }: UrlFetcherProps) {
     let processedUrl = url.trim()
     if (!processedUrl.match(/^https?:\/\//)) {
       processedUrl = `https://${processedUrl}`
-      console.log(`Auto-prepended HTTPS: ${processedUrl}`)
     }
 
     // Basic URL validation
