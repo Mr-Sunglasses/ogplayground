@@ -276,7 +276,16 @@ export default function Home() {
       <footer className="border-t py-6 sm:py-8 text-center text-xs sm:text-sm text-muted-foreground">
         <div className="container mx-auto px-4">
           <p className="max-w-2xl mx-auto">
-            Built with ❤️ using Next.js, shadcn/ui, and Tailwind CSS.{" "}
+            Built with ❤️ using Next.js, shadcn/ui, and Tailwind CSS by{" "}
+            <a
+              href="https://github.com/mrsunglasses"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:underline whitespace-nowrap"
+            >
+              @mrsunglasses
+            </a>
+            .{" "}
             <a
               href="https://ogp.me"
               target="_blank"
