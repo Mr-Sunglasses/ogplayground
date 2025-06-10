@@ -16,12 +16,21 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "OGPlayground - Open Graph Protocol Testing Playground",
-  description: "Test, validate, and preview your Open Graph meta tags with live previews for Facebook, Twitter, LinkedIn, and more.",
-  keywords: ["open graph", "og tags", "meta tags", "social media", "preview", "testing"],
+  description:
+    "Test, validate, and preview your Open Graph meta tags with live previews for Facebook, Twitter, LinkedIn, and more.",
+  keywords: [
+    "open graph",
+    "og tags",
+    "meta tags",
+    "social media",
+    "preview",
+    "testing",
+  ],
   authors: [{ name: "OGPlayground" }],
   openGraph: {
     title: "OGPlayground - Open Graph Protocol Testing Playground",
-    description: "Test, validate, and preview your Open Graph meta tags with live previews for Facebook, Twitter, LinkedIn, and more.",
+    description:
+      "Test, validate, and preview your Open Graph meta tags with live previews for Facebook, Twitter, LinkedIn, and more.",
     type: "website",
     url: "https://ogplayground.dev",
     images: [
@@ -36,7 +45,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "OGPlayground - Open Graph Protocol Testing Playground",
-    description: "Test, validate, and preview your Open Graph meta tags with live previews for Facebook, Twitter, LinkedIn, and more.",
+    description:
+      "Test, validate, and preview your Open Graph meta tags with live previews for Facebook, Twitter, LinkedIn, and more.",
     images: ["/og-image.png"],
   },
 };

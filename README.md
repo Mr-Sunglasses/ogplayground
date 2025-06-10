@@ -14,36 +14,42 @@
 ## 🚀 Features
 
 ### 🎨 **Live Social Media Previews**
+
 - **Facebook** - Real-time preview with authentic styling
 - **Twitter/X** - Support for both summary and large image cards
 - **LinkedIn** - Professional preview layout
 - **Discord** - Gaming-focused embed styling
 
 ### 🛠️ **Advanced Editor**
+
 - **Monaco Editor** - VS Code-like editing experience
 - **Syntax Highlighting** - HTML syntax highlighting for OG tags
 - **Live Validation** - Real-time error detection and suggestions
 - **Template System** - Pre-built templates for blog, product, and event pages
 
 ### 🔍 **Smart Validation**
+
 - **Comprehensive Checks** - Validates all major OG properties
 - **Intelligent Suggestions** - Actionable recommendations with code examples
 - **Character Limits** - Optimal length validation for titles and descriptions
 - **Image Validation** - URL format and dimension recommendations
 
 ### 🌐 **URL Fetcher**
+
 - **Analyze Existing Sites** - Fetch OG tags from any URL
 - **CORS Handling** - Server-side fetching to avoid browser limitations
 - **Demo Mode** - Sample data for testing when URLs are unavailable
 - **Error Handling** - Graceful fallbacks and error messages
 
 ### 📝 **Form-Based Generator**
+
 - **User-Friendly Interface** - Easy form inputs for all OG properties
 - **Character Counters** - Real-time length tracking
 - **Helpful Tips** - Inline guidance for best practices
 - **Export Options** - Copy generated HTML tags
 
 ### 🎭 **Modern UI/UX**
+
 - **Dark/Light Mode** - Seamless theme switching
 - **Responsive Design** - Mobile-first approach
 - **Collapsible Sections** - Space-efficient layout
@@ -53,21 +59,22 @@
 
 ## 🛠️ Tech Stack
 
-| Technology | Purpose | Version |
-|------------|---------|---------|
-| **Next.js** | React Framework with App Router | 15.3.3 |
-| **TypeScript** | Type Safety | 5.0+ |
-| **Tailwind CSS** | Utility-First Styling | 3.0+ |
-| **shadcn/ui** | Component Library | Latest |
-| **Monaco Editor** | Code Editor | Latest |
-| **Lucide React** | Icon Library | Latest |
-| **React Hot Toast** | Notifications | Latest |
+| Technology          | Purpose                         | Version |
+| ------------------- | ------------------------------- | ------- |
+| **Next.js**         | React Framework with App Router | 15.3.3  |
+| **TypeScript**      | Type Safety                     | 5.0+    |
+| **Tailwind CSS**    | Utility-First Styling           | 3.0+    |
+| **shadcn/ui**       | Component Library               | Latest  |
+| **Monaco Editor**   | Code Editor                     | Latest  |
+| **Lucide React**    | Icon Library                    | Latest  |
+| **React Hot Toast** | Notifications                   | Latest  |
 
 ---
 
 ## 📦 Installation
 
 ### Prerequisites
+
 - **Node.js** 18.0 or higher
 - **npm** or **yarn** package manager
 
@@ -103,24 +110,30 @@ npm start
 ## 🎮 Usage Guide
 
 ### 1. **Monaco Editor**
+
 The main editor provides a VS Code-like experience for editing HTML with OG tags:
 
 ```html
 <!-- Example OG tags -->
 <meta property="og:title" content="Amazing Product Launch" />
-<meta property="og:description" content="Discover our revolutionary new product that will change everything." />
+<meta
+  property="og:description"
+  content="Discover our revolutionary new product that will change everything."
+/>
 <meta property="og:image" content="https://example.com/product-image.jpg" />
 <meta property="og:url" content="https://example.com/product" />
 <meta property="og:type" content="website" />
 ```
 
 **Features:**
+
 - Real-time syntax highlighting
 - Auto-completion for OG properties
 - Error detection and warnings
 - Template insertion
 
 ### 2. **Templates**
+
 Choose from pre-built templates:
 
 - **📝 Blog Post** - Article-focused OG tags
@@ -128,6 +141,7 @@ Choose from pre-built templates:
 - **🎟️ Event Page** - Event-specific properties
 
 ### 3. **Validation System**
+
 The validation panel provides:
 
 - **Errors** - Critical issues that must be fixed
@@ -135,21 +149,24 @@ The validation panel provides:
 - **Info** - Best practice recommendations
 
 Each issue includes:
+
 - Clear description of the problem
 - Suggested fix with HTML code
 - Copy-to-clipboard functionality
 
 ### 4. **Social Previews**
+
 See real-time previews for:
 
-| Platform | Preview Type | Special Features |
-|----------|--------------|------------------|
-| Facebook | Link Card | Blue accent, engagement buttons |
-| Twitter/X | Summary/Large Image | Dark theme, retweet UI |
-| LinkedIn | Professional Card | Business-focused styling |
-| Discord | Rich Embed | Gaming aesthetic, purple accents |
+| Platform  | Preview Type        | Special Features                 |
+| --------- | ------------------- | -------------------------------- |
+| Facebook  | Link Card           | Blue accent, engagement buttons  |
+| Twitter/X | Summary/Large Image | Dark theme, retweet UI           |
+| LinkedIn  | Professional Card   | Business-focused styling         |
+| Discord   | Rich Embed          | Gaming aesthetic, purple accents |
 
 ### 5. **URL Fetcher**
+
 Analyze existing websites:
 
 1. Enter any URL in the fetcher
@@ -191,47 +208,58 @@ ogplayground/
 ## 🧩 Components Documentation
 
 ### `OGEditor`
+
 Monaco editor component for HTML editing.
 
 **Props:**
+
 - `value: string` - HTML content
 - `onChange: (value: string) => void` - Change handler
 - `className?: string` - Additional CSS classes
 
 **Features:**
+
 - Syntax highlighting
 - Template system
 - Auto-formatting
 - Error detection
 
 ### `SocialPreviews`
+
 Renders social media previews for all platforms.
 
 **Props:**
+
 - `ogData: OGData` - Parsed OG tag data
 
 **Platforms:**
+
 - Facebook preview with engagement UI
 - Twitter card with dark theme
 - LinkedIn professional layout
 - Discord rich embed
 
 ### `OGValidation`
+
 Validation panel with collapsible suggestions.
 
 **Props:**
+
 - `issues: ValidationIssue[]` - Array of validation issues
 
 **Features:**
+
 - Error/warning/info categorization
 - Collapsible suggestions
 - Copy-to-clipboard functionality
 - Responsive design
 
 ### `URLFetcher`
+
 Tool for fetching OG tags from external URLs.
 
 **Features:**
+
 - Server-side CORS handling
 - Error handling with fallbacks
 - Loading states
@@ -246,6 +274,7 @@ Tool for fetching OG tags from external URLs.
 Fetches OG tags from a given URL using server-side rendering to avoid CORS issues.
 
 **Request Body:**
+
 ```json
 {
   "url": "https://example.com"
@@ -253,6 +282,7 @@ Fetches OG tags from a given URL using server-side rendering to avoid CORS issue
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -262,6 +292,7 @@ Fetches OG tags from a given URL using server-side rendering to avoid CORS issue
 ```
 
 **Error Response:**
+
 ```json
 {
   "success": false,
@@ -274,6 +305,7 @@ Fetches OG tags from a given URL using server-side rendering to avoid CORS issue
 ## 🎨 Styling System
 
 ### Tailwind Configuration
+
 The project uses a custom Tailwind configuration with:
 
 - **Custom Colors** - Extended palette for better theming
@@ -282,6 +314,7 @@ The project uses a custom Tailwind configuration with:
 - **Dark Mode** - Automatic theme switching
 
 ### Component Styling
+
 - **shadcn/ui** - Pre-styled, accessible components
 - **CSS Modules** - Scoped styling where needed
 - **Utility Classes** - Tailwind-first approach
@@ -291,12 +324,14 @@ The project uses a custom Tailwind configuration with:
 ## 🔍 Validation Rules
 
 ### Required Tags
+
 - `og:title` - Page title (40-60 characters recommended)
 - `og:description` - Page description (120-160 characters recommended)
 - `og:image` - Preview image (1200x630px recommended)
 - `og:url` - Canonical URL
 
 ### Optional but Recommended
+
 - `og:type` - Content type (website, article, product, etc.)
 - `og:site_name` - Website name
 - `twitter:card` - Twitter card type
@@ -304,6 +339,7 @@ The project uses a custom Tailwind configuration with:
 - `twitter:description` - Twitter-specific description
 
 ### Image Validation
+
 - Must be absolute URL (https://)
 - Recommended dimensions: 1200x630px
 - Supported formats: JPG, PNG, WebP
@@ -314,6 +350,7 @@ The project uses a custom Tailwind configuration with:
 ## 🚀 Deployment
 
 ### Vercel (Recommended)
+
 ```bash
 # Install Vercel CLI
 npm i -g vercel
@@ -326,6 +363,7 @@ vercel --prod
 ```
 
 ### Netlify
+
 ```bash
 # Build
 npm run build
@@ -334,6 +372,7 @@ npm run build
 ```
 
 ### Docker
+
 ```dockerfile
 FROM node:18-alpine
 WORKDIR /app
@@ -365,6 +404,7 @@ We welcome contributions! Please follow these steps:
 - **Documentation** - Update docs for API changes
 
 ### Code Style
+
 ```bash
 # Lint code
 npm run lint

@@ -1,18 +1,18 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { generateOGTags } from "@/lib/og-parser"
-import { Wand2 } from "lucide-react"
-import toast from "react-hot-toast"
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { generateOGTags } from "@/lib/og-parser";
+import { Wand2 } from "lucide-react";
+import toast from "react-hot-toast";
 
 interface OGGeneratorProps {
-  onGenerate: (html: string) => void
+  onGenerate: (html: string) => void;
 }
 
 export function OGGenerator({ onGenerate }: OGGeneratorProps) {
@@ -23,23 +23,23 @@ export function OGGenerator({ onGenerate }: OGGeneratorProps) {
     url: "",
     siteName: "",
     type: "website",
-    twitterCard: "summary_large_image"
-  })
+    twitterCard: "summary_large_image",
+  });
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const generateTags = () => {
     if (!formData.title.trim()) {
-      toast.error("Title is required")
-      return
+      toast.error("Title is required");
+      return;
     }
 
-    const ogTags = generateOGTags(formData)
-    onGenerate(ogTags)
-    toast.success("OG tags generated!")
-  }
+    const ogTags = generateOGTags(formData);
+    onGenerate(ogTags);
+    toast.success("OG tags generated!");
+  };
 
   const clearForm = () => {
     setFormData({
@@ -49,21 +49,23 @@ export function OGGenerator({ onGenerate }: OGGeneratorProps) {
       url: "",
       siteName: "",
       type: "website",
-      twitterCard: "summary_large_image"
-    })
-  }
+      twitterCard: "summary_large_image",
+    });
+  };
 
   const fillExample = () => {
     setFormData({
       title: "Amazing Product Launch - Revolutionary Technology",
-      description: "Discover our groundbreaking new product that will transform the way you work. Built with cutting-edge technology and designed for the modern user.",
-      image: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=1200&h=630&fit=crop",
+      description:
+        "Discover our groundbreaking new product that will transform the way you work. Built with cutting-edge technology and designed for the modern user.",
+      image:
+        "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=1200&h=630&fit=crop",
       url: "https://yourcompany.com/product-launch",
       siteName: "Your Company",
       type: "website",
-      twitterCard: "summary_large_image"
-    })
-  }
+      twitterCard: "summary_large_image",
+    });
+  };
 
   return (
     <Card>
@@ -86,13 +88,16 @@ export function OGGenerator({ onGenerate }: OGGeneratorProps) {
           Fill in the form below to generate Open Graph meta tags
         </p>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {/* Basic OG Tags */}
         <div className="space-y-4">
           <div>
             <label className="text-sm font-medium mb-1 block">
-              Title <Badge variant="destructive" className="ml-1 text-xs">Required</Badge>
+              Title{" "}
+              <Badge variant="destructive" className="ml-1 text-xs">
+                Required
+              </Badge>
             </label>
             <Input
               placeholder="Your page title"
@@ -107,7 +112,10 @@ export function OGGenerator({ onGenerate }: OGGeneratorProps) {
 
           <div>
             <label className="text-sm font-medium mb-1 block">
-              Description <Badge variant="destructive" className="ml-1 text-xs">Required</Badge>
+              Description{" "}
+              <Badge variant="destructive" className="ml-1 text-xs">
+                Required
+              </Badge>
             </label>
             <Textarea
               placeholder="A compelling description of your page content"
@@ -117,13 +125,17 @@ export function OGGenerator({ onGenerate }: OGGeneratorProps) {
               rows={3}
             />
             <p className="text-xs text-muted-foreground mt-1">
-              {formData.description.length}/200 characters (recommended: 120-160)
+              {formData.description.length}/200 characters (recommended:
+              120-160)
             </p>
           </div>
 
           <div>
             <label className="text-sm font-medium mb-1 block">
-              Image URL <Badge variant="destructive" className="ml-1 text-xs">Required</Badge>
+              Image URL{" "}
+              <Badge variant="destructive" className="ml-1 text-xs">
+                Required
+              </Badge>
             </label>
             <Input
               type="url"
@@ -148,7 +160,9 @@ export function OGGenerator({ onGenerate }: OGGeneratorProps) {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-1 block">Site Name</label>
+              <label className="text-sm font-medium mb-1 block">
+                Site Name
+              </label>
               <Input
                 placeholder="Your Site Name"
                 value={formData.siteName}
@@ -163,7 +177,7 @@ export function OGGenerator({ onGenerate }: OGGeneratorProps) {
         {/* Advanced Options */}
         <div className="space-y-4">
           <h4 className="text-sm font-medium">Advanced Options</h4>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium mb-1 block">Type</label>
@@ -182,11 +196,15 @@ export function OGGenerator({ onGenerate }: OGGeneratorProps) {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-1 block">Twitter Card</label>
+              <label className="text-sm font-medium mb-1 block">
+                Twitter Card
+              </label>
               <select
                 className="w-full p-2 border border-input bg-background rounded-md text-sm"
                 value={formData.twitterCard}
-                onChange={(e) => handleInputChange("twitterCard", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("twitterCard", e.target.value)
+                }
               >
                 <option value="summary">Summary</option>
                 <option value="summary_large_image">Summary Large Image</option>
@@ -217,5 +235,5 @@ export function OGGenerator({ onGenerate }: OGGeneratorProps) {
         </div>
       </CardContent>
     </Card>
-  )
-} 
+  );
+}
