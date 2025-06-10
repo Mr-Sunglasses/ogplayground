@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import { ModeToggle } from "@/components/mode-toggle"
-import { Button } from "@/components/ui/button"
-import { Github, ExternalLink } from "lucide-react"
-import Link from "next/link"
+import { ModeToggle } from "@/components/mode-toggle";
+import { Button } from "@/components/ui/button";
+import { Github, ExternalLink } from "lucide-react";
+import Link from "next/link";
 
 export function Header() {
   return (
@@ -51,5 +51,5 @@ export function Header() {
         </div>
       </div>
     </header>
-  )
-} 
+  );
+}

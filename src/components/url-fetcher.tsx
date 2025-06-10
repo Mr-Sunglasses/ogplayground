@@ -1,27 +1,27 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Globe, Loader2, AlertCircle } from "lucide-react"
-import toast from "react-hot-toast"
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Globe, Loader2, AlertCircle } from "lucide-react";
+import toast from "react-hot-toast";
 
 interface UrlFetcherProps {
-  onOGTagsFetched: (html: string) => void
+  onOGTagsFetched: (html: string) => void;
 }
 
 export function UrlFetcher({ onOGTagsFetched }: UrlFetcherProps) {
-  const [url, setUrl] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [url, setUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchUrl = async () => {
     if (!url.trim()) {
-      toast.error("Please enter a URL")
-      return
+      toast.error("Please enter a URL");
+      return;
     }
 
     // Auto-prepend https:// if no protocol specified
@@ -34,124 +34,141 @@ export function UrlFetcher({ onOGTagsFetched }: UrlFetcherProps) {
     try {
       new URL(processedUrl)
     } catch {
-      setError("Please enter a valid URL (include http:// or https://)")
-      return
+      setError("Please enter a valid URL (include http:// or https://)");
+      return;
     }
 
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
 
     try {
       // First, try our own API route (recommended approach)
       try {
-        console.log("Trying internal API route...")
-        const response = await fetch('/api/fetch-url', {
-          method: 'POST',
+        console.log("Trying internal API route...");
+        const response = await fetch("/api/fetch-url", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({ url: processedUrl }),
         })
 
-        const data = await response.json()
+        const data = await response.json();
 
         if (response.ok && data.html) {
-          onOGTagsFetched(data.html)
-          toast.success("OG tags fetched successfully!")
-          return // Success, exit early
+          onOGTagsFetched(data.html);
+          toast.success("OG tags fetched successfully!");
+          return; // Success, exit early
         } else {
-          throw new Error(data.error || "API route failed")
+          throw new Error(data.error || "API route failed");
         }
       } catch (apiError) {
-        console.warn("Internal API failed:", apiError)
+        console.warn("Internal API failed:", apiError);
         // Continue to fallback proxies
       }
 
       // Fallback to external CORS proxy services
-      console.log("Trying external proxy services as fallback...")
+      console.log("Trying external proxy services as fallback...");
       const proxies = [
         `https://api.allorigins.win/get?url=${encodeURIComponent(processedUrl)}`,
         `https://corsproxy.io/?${encodeURIComponent(processedUrl)}`
       ]
 
-      let success = false
-      let lastError = ""
+      let success = false;
+      let lastError = "";
 
       for (const proxyUrl of proxies) {
         try {
-          console.log(`Trying proxy: ${proxyUrl}`)
-          
+          console.log(`Trying proxy: ${proxyUrl}`);
+
           const response = await fetch(proxyUrl, {
-            method: 'GET',
+            method: "GET",
             headers: {
-              'Accept': 'application/json',
+              Accept: "application/json",
             },
-          })
+          });
 
           if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
           }
 
-          let htmlContent = ""
+          let htmlContent = "";
 
           // Handle different proxy response formats
-          if (proxyUrl.includes('allorigins.win')) {
-            const data = await response.json()
+          if (proxyUrl.includes("allorigins.win")) {
+            const data = await response.json();
             if (data.contents) {
-              htmlContent = data.contents
+              htmlContent = data.contents;
             } else {
-              throw new Error("No content in allorigins response")
+              throw new Error("No content in allorigins response");
             }
-          } else if (proxyUrl.includes('corsproxy.io')) {
-            htmlContent = await response.text()
+          } else if (proxyUrl.includes("corsproxy.io")) {
+            htmlContent = await response.text();
           } else {
-            htmlContent = await response.text()
+            htmlContent = await response.text();
           }
 
           if (htmlContent && htmlContent.length > 0) {
-            onOGTagsFetched(htmlContent)
-            toast.success("OG tags fetched via proxy!")
-            success = true
-            break
+            onOGTagsFetched(htmlContent);
+            toast.success("OG tags fetched via proxy!");
+            success = true;
+            break;
           } else {
-            throw new Error("Empty response content")
+            throw new Error("Empty response content");
           }
         } catch (proxyError) {
-          console.warn(`Proxy ${proxyUrl} failed:`, proxyError)
-          lastError = proxyError instanceof Error ? proxyError.message : "Unknown error"
-          continue
+          console.warn(`Proxy ${proxyUrl} failed:`, proxyError);
+          lastError =
+            proxyError instanceof Error ? proxyError.message : "Unknown error";
+          continue;
         }
       }
 
       if (!success) {
-        throw new Error(lastError || "All proxy services failed")
+        throw new Error(lastError || "All proxy services failed");
+      }
+    } catch (err) {
+      console.error("URL fetch error:", err);
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+
+      if (
+        errorMessage.includes("CORS") ||
+        errorMessage.includes("cross-origin")
+      ) {
+        setError(
+          "CORS error: The website blocks cross-origin requests. Try a different URL or implement a backend proxy.",
+        );
+      } else if (
+        errorMessage.includes("network") ||
+        errorMessage.includes("fetch")
+      ) {
+        setError(
+          "Network error: Please check your internet connection and try again.",
+        );
+      } else if (
+        errorMessage.includes("404") ||
+        errorMessage.includes("not found")
+      ) {
+        setError(
+          "URL not found (404). Please check if the URL is correct and accessible.",
+        );
+      } else {
+        setError(
+          `Failed to fetch URL: ${errorMessage}. This might be due to CORS restrictions or the proxy service being unavailable.`,
+        );
       }
 
-    } catch (err) {
-      console.error("URL fetch error:", err)
-      const errorMessage = err instanceof Error ? err.message : "Unknown error"
-      
-      if (errorMessage.includes("CORS") || errorMessage.includes("cross-origin")) {
-        setError("CORS error: The website blocks cross-origin requests. Try a different URL or implement a backend proxy.")
-      } else if (errorMessage.includes("network") || errorMessage.includes("fetch")) {
-        setError("Network error: Please check your internet connection and try again.")
-      } else if (errorMessage.includes("404") || errorMessage.includes("not found")) {
-        setError("URL not found (404). Please check if the URL is correct and accessible.")
-      } else {
-        setError(`Failed to fetch URL: ${errorMessage}. This might be due to CORS restrictions or the proxy service being unavailable.`)
-      }
-      
-      toast.error("Failed to fetch URL")
+      toast.error("Failed to fetch URL");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
-      fetchUrl()
+      fetchUrl();
     }
-  }
+  };
 
   const loadDemoContent = () => {
     // Demo GitHub.com OG tags for testing purposes
@@ -169,12 +186,12 @@ export function UrlFetcher({ onOGTagsFetched }: UrlFetcherProps) {
 <meta name="twitter:title" content="GitHub: Let's build from here">
 <meta name="twitter:description" content="GitHub is where over 100 million developers shape the future of software, together. Contribute to the open source community, manage Git repositories, and review code like a pro.">
 <meta name="twitter:image" content="https://github.githubassets.com/images/modules/site/social-cards/github-social.png">
-<meta name="twitter:image:alt" content="GitHub social card">`
+<meta name="twitter:image:alt" content="GitHub social card">`;
 
-    onOGTagsFetched(demoOGTags)
-    setUrl("https://github.com")
-    toast.success("Demo OG tags loaded!")
-  }
+    onOGTagsFetched(demoOGTags);
+    setUrl("https://github.com");
+    toast.success("Demo OG tags loaded!");
+  };
 
   return (
     <Card>
@@ -187,7 +204,7 @@ export function UrlFetcher({ onOGTagsFetched }: UrlFetcherProps) {
           Enter a URL to fetch and analyze its Open Graph tags
         </p>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         <div className="flex space-x-2">
           <Input
@@ -200,11 +217,7 @@ export function UrlFetcher({ onOGTagsFetched }: UrlFetcherProps) {
             className="flex-1"
           />
           <Button onClick={fetchUrl} disabled={loading || !url.trim()}>
-            {loading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              "Fetch"
-            )}
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Fetch"}
           </Button>
         </div>
 
@@ -217,8 +230,11 @@ export function UrlFetcher({ onOGTagsFetched }: UrlFetcherProps) {
 
         <div className="text-xs text-muted-foreground space-y-1">
           <p>
-            <Badge variant="secondary" className="mr-2">How it works</Badge>
-            We first try our server-side API, then fallback to CORS proxies if needed.
+            <Badge variant="secondary" className="mr-2">
+              How it works
+            </Badge>
+            We first try our server-side API, then fallback to CORS proxies if
+            needed.
           </p>
           <p className="ml-20">
             Some websites may block requests or have strict security policies.
@@ -249,7 +265,7 @@ export function UrlFetcher({ onOGTagsFetched }: UrlFetcherProps) {
                 "https://github.com",
                 "https://vercel.com",
                 "https://nextjs.org",
-                "https://tailwindcss.com"
+                "https://tailwindcss.com",
               ].map((exampleUrl) => (
                 <Button
                   key={exampleUrl}
@@ -267,5 +283,5 @@ export function UrlFetcher({ onOGTagsFetched }: UrlFetcherProps) {
         </div>
       </CardContent>
     </Card>
-  )
-} 
+  );
+}

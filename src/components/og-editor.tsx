@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import Editor from "@monaco-editor/react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { useTheme } from "next-themes"
-import { Copy, FileText, Package, Calendar, Download } from "lucide-react"
-import toast from "react-hot-toast"
+import { useEffect, useState } from "react";
+import Editor from "@monaco-editor/react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useTheme } from "next-themes";
+import { Copy, FileText, Package, Calendar, Download } from "lucide-react";
+import toast from "react-hot-toast";
 
 interface OGEditorProps {
-  value: string
-  onChange: (value: string) => void
+  value: string;
+  onChange: (value: string) => void;
 }
 
 const templates = {
@@ -50,38 +50,38 @@ const templates = {
 <meta property="og:site_name" content="Tech Conference" />
 <meta name="twitter:card" content="summary_large_image" />`,
   },
-}
+};
 
 export function OGEditor({ value, onChange }: OGEditorProps) {
-  const { theme } = useTheme()
-  const [mounted, setMounted] = useState(false)
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(value)
-    toast.success("Copied to clipboard!")
-  }
+    navigator.clipboard.writeText(value);
+    toast.success("Copied to clipboard!");
+  };
 
   const handleTemplateSelect = (templateContent: string) => {
-    onChange(templateContent)
-    toast.success("Template loaded!")
-  }
+    onChange(templateContent);
+    toast.success("Template loaded!");
+  };
 
   const handleExport = () => {
-    const blob = new Blob([value], { type: "text/html" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = "og-tags.html"
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-    toast.success("Exported as HTML file!")
-  }
+    const blob = new Blob([value], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "og-tags.html";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("Exported as HTML file!");
+  };
 
   if (!mounted) {
     return (
@@ -93,7 +93,7 @@ export function OGEditor({ value, onChange }: OGEditorProps) {
           <div className="h-96 bg-muted animate-pulse rounded" />
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -112,13 +112,13 @@ export function OGEditor({ value, onChange }: OGEditorProps) {
             </Button>
           </div>
         </div>
-        
+
         <div className="flex flex-wrap gap-2">
           <Badge variant="secondary" className="text-xs">
             Templates:
           </Badge>
           {Object.entries(templates).map(([key, template]) => {
-            const Icon = template.icon
+            const Icon = template.icon;
             return (
               <Button
                 key={key}
@@ -130,11 +130,11 @@ export function OGEditor({ value, onChange }: OGEditorProps) {
                 <Icon className="h-3 w-3 mr-1" />
                 {template.name}
               </Button>
-            )
+            );
           })}
         </div>
       </CardHeader>
-      
+
       <CardContent className="flex-1 p-0">
         <div className="h-full min-h-[400px]">
           <Editor
@@ -159,5 +159,5 @@ export function OGEditor({ value, onChange }: OGEditorProps) {
         </div>
       </CardContent>
     </Card>
-  )
-} 
+  );
+}
