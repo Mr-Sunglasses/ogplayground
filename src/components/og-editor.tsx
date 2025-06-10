@@ -5,8 +5,9 @@ import Editor from "@monaco-editor/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { useTheme } from "next-themes";
-import { Copy, FileText, Package, Calendar, Download } from "lucide-react";
+import { Copy, FileText, Package, Calendar, Download, Code, Type } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface OGEditorProps {
@@ -52,13 +53,164 @@ const templates = {
   },
 };
 
+// Monaco Editor Wrapper Component with better mobile handling
+function MonacoEditorWrapper({ 
+  isMobile, 
+  theme, 
+  value, 
+  onChange, 
+  onError 
+}: {
+  isMobile: boolean;
+  theme: string | undefined;
+  value: string;
+  onChange: (value: string) => void;
+  onError: () => void;
+}) {
+  const [isTimeout, setIsTimeout] = useState(false);
+
+  useEffect(() => {
+    // Set a timeout for mobile Monaco loading
+    if (isMobile) {
+      const timeout = setTimeout(() => {
+        console.warn('Monaco editor timeout on mobile, falling back to simple editor');
+        setIsTimeout(true);
+        onError();
+      }, 5000); // 5 seconds timeout for mobile
+
+      return () => clearTimeout(timeout);
+    }
+  }, [isMobile, onError]);
+
+  if (isTimeout) {
+    return (
+      <div className="h-full p-4">
+        <Textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Enter your Open Graph meta tags here..."
+          className="h-full min-h-[250px] font-mono text-sm resize-none overflow-auto"
+          style={{ 
+            lineHeight: '1.5',
+            scrollbarWidth: 'thin'
+          } as React.CSSProperties}
+        />
+        <div className="mt-2 text-xs text-muted-foreground">
+          Monaco editor timed out. Using simple text editor.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full">
+      <Editor
+        height="100%"
+        defaultLanguage="html"
+        theme={theme === "dark" ? "vs-dark" : "light"}
+        value={value}
+        onChange={(value) => onChange(value || "")}
+        onMount={() => {
+          console.log('Monaco editor mounted successfully');
+        }}
+        beforeMount={() => {
+          console.log('Monaco editor about to mount');
+        }}
+        loading={
+          <div className="h-full flex items-center justify-center">
+            <div className="text-sm text-muted-foreground">
+              Loading editor...
+              {isMobile && <div className="text-xs mt-1">This may take a moment on mobile</div>}
+            </div>
+          </div>
+        }
+        options={isMobile ? {
+          // Simplified mobile options
+          minimap: { enabled: false },
+          fontSize: 13,
+          lineNumbers: "off",
+          wordWrap: "on",
+          folding: false,
+          autoIndent: "full",
+          scrollBeyondLastLine: false,
+          padding: { top: 8, bottom: 8 },
+          automaticLayout: true,
+          scrollbar: {
+            vertical: "visible",
+            horizontal: "auto",
+            verticalScrollbarSize: 12,
+            horizontalScrollbarSize: 12,
+          },
+          mouseWheelZoom: false,
+          contextmenu: false,
+          glyphMargin: false,
+          lineDecorationsWidth: 0,
+          lineNumbersMinChars: 0,
+          smoothScrolling: true,
+        } : {
+          // Desktop options
+          minimap: { enabled: false },
+          fontSize: 14,
+          lineNumbers: "on",
+          wordWrap: "on",
+          folding: true,
+          autoIndent: "full",
+          formatOnPaste: true,
+          formatOnType: true,
+          scrollBeyondLastLine: false,
+          padding: { top: 12, bottom: 12 },
+          automaticLayout: true,
+          scrollbar: {
+            verticalScrollbarSize: 14,
+            horizontalScrollbarSize: 14,
+          },
+          mouseWheelZoom: false,
+          contextmenu: true,
+        }}
+      />
+    </div>
+  );
+}
+
 export function OGEditor({ value, onChange }: OGEditorProps) {
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [useSimpleEditor, setUseSimpleEditor] = useState(false);
+  const [editorError, setEditorError] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    
+    // Check if mobile on mount and resize
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 640;
+      setIsMobile(mobile);
+      
+      // On mobile, start with simple editor for better reliability
+      if (mobile && !mounted) {
+        setUseSimpleEditor(true);
+      }
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    // Add error handling for Monaco editor
+    const handleError = (event: ErrorEvent) => {
+      if (event.message && event.message.includes('monaco')) {
+        console.warn('Monaco editor error detected, falling back to simple editor');
+        setEditorError(true);
+      }
+    };
+    
+    window.addEventListener('error', handleError);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('error', handleError);
+    };
+  }, [mounted]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(value);
@@ -98,64 +250,111 @@ export function OGEditor({ value, onChange }: OGEditorProps) {
 
   return (
     <Card className="h-full flex flex-col">
-      <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
-          <CardTitle>OG Tag Editor</CardTitle>
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" onClick={handleCopy}>
-              <Copy className="h-4 w-4 mr-1" />
-              Copy
+      <CardHeader className="pb-3 sm:pb-4 space-y-3">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <CardTitle className="text-base sm:text-lg">OG Tag Editor</CardTitle>
+          <div className="flex items-center space-x-1 sm:space-x-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setUseSimpleEditor(!useSimpleEditor)}
+              className="text-xs h-7"
+              title={useSimpleEditor ? "Switch to advanced editor with syntax highlighting" : "Switch to simple text editor"}
+            >
+              {useSimpleEditor ? <Code className="h-3 w-3" /> : <Type className="h-3 w-3" />}
+              <span className="ml-1 hidden xs:inline">
+                {useSimpleEditor ? "Advanced" : "Simple"}
+              </span>
             </Button>
-            <Button variant="outline" size="sm" onClick={handleExport}>
-              <Download className="h-4 w-4 mr-1" />
-              Export
+            <Button variant="outline" size="sm" onClick={handleCopy} className="text-xs sm:text-sm h-7 sm:h-8">
+              <Copy className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              <span className="hidden xs:inline">Copy</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExport} className="text-xs sm:text-sm h-7 sm:h-8">
+              <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              <span className="hidden xs:inline">Export</span>
             </Button>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Badge variant="secondary" className="text-xs">
-            Templates:
-          </Badge>
-          {Object.entries(templates).map(([key, template]) => {
-            const Icon = template.icon;
-            return (
-              <Button
-                key={key}
-                variant="outline"
-                size="sm"
-                onClick={() => handleTemplateSelect(template.content)}
-                className="h-7 text-xs"
-              >
-                <Icon className="h-3 w-3 mr-1" />
-                {template.name}
-              </Button>
-            );
-          })}
+        {/* Mobile: Stack templates vertically, Desktop: Horizontal */}
+        <div className="space-y-2 sm:space-y-0">
+          <div className="hidden sm:flex sm:flex-wrap sm:gap-2">
+            <Badge variant="secondary" className="text-xs">
+              Templates:
+            </Badge>
+            {Object.entries(templates).map(([key, template]) => {
+              const Icon = template.icon;
+              return (
+                <Button
+                  key={key}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleTemplateSelect(template.content)}
+                  className="h-7 text-xs"
+                >
+                  <Icon className="h-3 w-3 mr-1" />
+                  {template.name}
+                </Button>
+              );
+            })}
+          </div>
+          
+          {/* Mobile template selector */}
+          <div className="sm:hidden">
+            <Badge variant="secondary" className="text-xs mb-2 block">
+              Templates:
+            </Badge>
+            <div className="grid grid-cols-1 gap-2">
+              {Object.entries(templates).map(([key, template]) => {
+                const Icon = template.icon;
+                return (
+                  <Button
+                    key={key}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleTemplateSelect(template.content)}
+                    className="h-8 text-xs justify-start"
+                  >
+                    <Icon className="h-3 w-3 mr-2" />
+                    {template.name}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 p-0">
-        <div className="h-full min-h-[400px]">
-          <Editor
-            height="100%"
-            defaultLanguage="html"
-            theme={theme === "dark" ? "vs-dark" : "light"}
-            value={value}
-            onChange={(value) => onChange(value || "")}
-            options={{
-              minimap: { enabled: false },
-              fontSize: 14,
-              lineNumbers: "on",
-              wordWrap: "on",
-              folding: true,
-              autoIndent: "full",
-              formatOnPaste: true,
-              formatOnType: true,
-              scrollBeyondLastLine: false,
-              padding: { top: 16, bottom: 16 },
-            }}
-          />
+      <CardContent className="flex-1 p-0 min-h-0">
+        <div className="h-full min-h-[300px] sm:min-h-[400px]">
+          {useSimpleEditor || editorError ? (
+            <div className="h-full p-4">
+              <Textarea
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder="Enter your Open Graph meta tags here..."
+                className="h-full min-h-[250px] font-mono text-sm resize-none overflow-auto"
+                style={{ 
+                  lineHeight: '1.5',
+                  scrollbarWidth: 'thin'
+                } as React.CSSProperties}
+              />
+              {editorError && (
+                <div className="mt-2 text-xs text-muted-foreground">
+                  Monaco editor failed to load. Using simple text editor.
+                </div>
+              )}
+            </div>
+          ) : (
+            <MonacoEditorWrapper
+              isMobile={isMobile}
+              theme={theme}
+              value={value}
+              onChange={onChange}
+              onError={() => setEditorError(true)}
+            />
+          )}
         </div>
       </CardContent>
     </Card>
