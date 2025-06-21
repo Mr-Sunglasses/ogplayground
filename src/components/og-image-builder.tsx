@@ -222,19 +222,20 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
         ctx.restore();
       }
       
-      // Add brand name next to logo in top left (12px gap from 48px logo)
+      // Add brand name next to logo in top left (text-3xl, 12px gap from 48px logo)
       if (settings.brandName) {
         ctx.save();
         // Add text shadow for depth
         ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-        ctx.font = 'bold 32px "Geist Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.font = 'bold 30px "Geist Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
         ctx.textAlign = 'left';
         const brandX = loadedImages.visualIdentity ? 124 : 64; // 64 + 48 + 12 = 124px
-        ctx.fillText(settings.brandName, brandX + 1, 91);
+        const brandY = 88; // Vertically centered with 48px logo
+        ctx.fillText(settings.brandName, brandX + 1, brandY + 1);
         
-        // Add main text - black color
-        ctx.fillStyle = 'rgba(30, 30, 30, 0.95)';
-        ctx.fillText(settings.brandName, brandX, 90);
+        // Add main text - text-gray-800 color
+        ctx.fillStyle = 'rgba(31, 41, 55, 1)'; // text-gray-800
+        ctx.fillText(settings.brandName, brandX, brandY);
         ctx.restore();
       }
       
@@ -263,13 +264,15 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
         ctx.restore();
       }
       
-      // Add title in center (large and prominent)
+      // Add title in lower-left area (text-5xl, leading-tight)
       ctx.save();
       ctx.font = 'bold 48px "Geist Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      ctx.textAlign = 'center';
+      ctx.textAlign = 'left';
       
-      const titleY = 280;
-      const titleMaxWidth = 1000;
+      const titleX = 64; // Left aligned with padding
+      const titleStartY = 350; // Lower-left positioning
+      const titleMaxWidth = 500; // Left half width minus padding
+      const lineHeight = 60; // leading-tight equivalent
       
       const words = settings.title.split(' ');
       let line = '';
@@ -290,35 +293,36 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
       lines.push(line.trim());
       
       // Draw title lines with shadow
-      let currentY = titleY;
+      let currentY = titleStartY;
       lines.forEach((line, index) => {
         // Text shadow
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        ctx.fillText(line, canvas.width / 2 + 3, currentY + 3);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillText(line, titleX + 2, currentY + 2);
         
-        // Main text - very dark for high contrast
-        ctx.fillStyle = 'rgba(30, 30, 30, 0.95)';
-        ctx.fillText(line, canvas.width / 2, currentY);
-        currentY += 60;
+        // Main text - text-gray-800 color
+        ctx.fillStyle = 'rgba(31, 41, 55, 1)'; // text-gray-800
+        ctx.fillText(line, titleX, currentY);
+        currentY += lineHeight;
       });
       ctx.restore();
       
-      // Add description at bottom
+      // Add description in bottom-left area (text-2xl, 24px spacing from title)
       if (settings.description) {
         ctx.save();
-        ctx.font = '28px "Geist Mono", "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace';
-        ctx.textAlign = 'center';
+        ctx.font = '24px "Geist Mono", "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace';
+        ctx.textAlign = 'left';
         
-        // Position at bottom of image
-        const descriptionY = canvas.height - 80;
+        // Position in bottom-left with 24px spacing from title
+        const descriptionX = 64; // Left aligned with padding
+        const descriptionY = canvas.height - 100; // Bottom area positioning
         
         // Text shadow for description
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-        ctx.fillText(settings.description, canvas.width / 2 + 2, descriptionY + 2);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillText(settings.description, descriptionX + 1, descriptionY + 1);
         
-        // Main description text - dark for contrast
-        ctx.fillStyle = 'rgba(60, 60, 60, 0.9)';
-        ctx.fillText(settings.description, canvas.width / 2, descriptionY);
+        // Main description text - text-gray-600 color
+        ctx.fillStyle = 'rgba(75, 85, 99, 1)'; // text-gray-600
+        ctx.fillText(settings.description, descriptionX, descriptionY);
         ctx.restore();
       }
       
