@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     const response = await fetch(url, {
       headers: {
         "User-Agent":
-          "Mozilla/5.0 (compatible; OGPlayground/1.0; +https://ogplayground.dev)",
+          "Mozilla/5.0 (compatible; OGPlayground/1.0; +https://ogplayground.kanishkk.me)",
         Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.5",
         "Accept-Encoding": "gzip, deflate",
