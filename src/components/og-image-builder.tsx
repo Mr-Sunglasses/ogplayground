@@ -37,7 +37,19 @@ const gradientPresets = [
   { name: "Pink", start: "#f093fb", end: "#f5576c" },
   { name: "Gold", start: "#f7971e", end: "#ffd200" },
   { name: "Blue", start: "#00d2ff", end: "#3a7bd5" },
-  { name: "Dark", start: "#232526", end: "#414345" },
+  { name: "Mint", start: "#a8edea", end: "#fed6e3" },
+  { name: "Coral", start: "#ff9a8b", end: "#a8edea" },
+  { name: "Lavender", start: "#d299c2", end: "#fef9d7" },
+  { name: "Peach", start: "#ffeaa7", end: "#fab1a0" },
+  { name: "Sky", start: "#74b9ff", end: "#e17055" },
+  { name: "Emerald", start: "#00b894", end: "#00cec9" },
+  { name: "Rose", start: "#fd79a8", end: "#fdcb6e" },
+  { name: "Violet", start: "#6c5ce7", end: "#a29bfe" },
+  { name: "Lime", start: "#00b894", end: "#55a3ff" },
+  { name: "Cherry", start: "#eb3349", end: "#f45c43" },
+  { name: "Aqua", start: "#12c2e9", end: "#c471ed" },
+  { name: "Mango", start: "#ffe259", end: "#ffa751" },
+  { name: "Berry", start: "#8360c3", end: "#2ebf91" },
 ];
 
 const gridTypes = [
