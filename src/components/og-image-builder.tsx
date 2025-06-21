@@ -207,29 +207,29 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
         URL.revokeObjectURL(heroUrl);
       }
       
-      // Add visual identity/logo in top left
+      // Add visual identity/logo in top left (48x48px with 64px padding)
       if (loadedImages.visualIdentity) {
         ctx.save();
         // Add subtle backdrop for logo
         ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
         ctx.beginPath();
-        ctx.arc(90, 90, 35, 0, 2 * Math.PI);
+        ctx.arc(88, 88, 28, 0, 2 * Math.PI);
         ctx.fill();
         
-        drawRoundedRect(60, 60, 60, 60, 12);
+        drawRoundedRect(64, 64, 48, 48, 8);
         ctx.clip();
-        ctx.drawImage(loadedImages.visualIdentity, 60, 60, 60, 60);
+        ctx.drawImage(loadedImages.visualIdentity, 64, 64, 48, 48);
         ctx.restore();
       }
       
-      // Add brand name next to logo in top left
+      // Add brand name next to logo in top left (12px gap from 48px logo)
       if (settings.brandName) {
         ctx.save();
         // Add text shadow for depth
         ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
         ctx.font = 'bold 32px "Geist Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
         ctx.textAlign = 'left';
-        const brandX = loadedImages.visualIdentity ? 140 : 60;
+        const brandX = loadedImages.visualIdentity ? 124 : 64; // 64 + 48 + 12 = 124px
         ctx.fillText(settings.brandName, brandX + 1, 91);
         
         // Add main text - black color
@@ -238,17 +238,28 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
         ctx.restore();
       }
       
-      // Add hero image in top right
+      // Add hero image in right half, centered vertically (450px width, auto height)
       if (loadedImages.heroImage) {
         ctx.save();
+        
+        // Calculate dimensions maintaining aspect ratio
+        const heroWidth = 450;
+        const aspectRatio = loadedImages.heroImage.height / loadedImages.heroImage.width;
+        const heroHeight = heroWidth * aspectRatio;
+        
+        // Position in right half (600px), centered vertically
+        const heroX = canvas.width - 64 - heroWidth; // Right aligned with 64px padding
+        const heroY = (canvas.height - heroHeight) / 2; // Vertically centered
+        
         // Add subtle backdrop for hero image
         ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-        drawRoundedRect(canvas.width - 320, 40, 260, 200, 24);
+        drawRoundedRect(heroX - 10, heroY - 10, heroWidth + 20, heroHeight + 20, 16);
         ctx.fill();
         
-        drawRoundedRect(canvas.width - 300, 60, 220, 160, 20);
+        // Draw hero image with rounded corners
+        drawRoundedRect(heroX, heroY, heroWidth, heroHeight, 12);
         ctx.clip();
-        ctx.drawImage(loadedImages.heroImage, canvas.width - 300, 60, 220, 160);
+        ctx.drawImage(loadedImages.heroImage, heroX, heroY, heroWidth, heroHeight);
         ctx.restore();
       }
       
