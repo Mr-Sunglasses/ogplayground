@@ -327,15 +327,54 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
         
         // Position in bottom-left with proper spacing from title
         const descriptionX = 64; // Left aligned with padding
-        const descriptionY = canvas.height - 80; // Moved closer to bottom for better spacing
+        const descriptionMaxWidth = 500; // Left half width minus padding
+        const descriptionLineHeight = 32; // Line height for 24px font
+        const descriptionStartY = canvas.height - 120; // Start higher to allow for multiple lines
         
-        // Text shadow for description
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-        ctx.fillText(settings.description, descriptionX + 1, descriptionY + 1);
+        // Break description into lines
+        const words = settings.description.split(' ');
+        let line = '';
+        let lines: string[] = [];
         
-        // Main description text - text-gray-600 color
-        ctx.fillStyle = '#4b5563'; // text-gray-600
-        ctx.fillText(settings.description, descriptionX, descriptionY);
+        for (let n = 0; n < words.length; n++) {
+          const testLine = line + words[n] + ' ';
+          const metrics = ctx.measureText(testLine);
+          const testWidth = metrics.width;
+          
+          if (testWidth > descriptionMaxWidth && n > 0) {
+            lines.push(line.trim());
+            line = words[n] + ' ';
+          } else {
+            line = testLine;
+          }
+        }
+        lines.push(line.trim());
+        
+        // Limit to maximum 3 lines to stay within canvas
+        if (lines.length > 3) {
+          lines = lines.slice(0, 3);
+          // Add ellipsis to last line if truncated
+          const lastLine = lines[2];
+          const ellipsisTest = lastLine + '...';
+          const ellipsisMetrics = ctx.measureText(ellipsisTest);
+          if (ellipsisMetrics.width <= descriptionMaxWidth) {
+            lines[2] = ellipsisTest;
+          }
+        }
+        
+        // Draw description lines
+        let currentY = descriptionStartY;
+        lines.forEach((line, index) => {
+          // Text shadow for description
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+          ctx.fillText(line, descriptionX + 1, currentY + 1);
+          
+          // Main description text - text-gray-600 color
+          ctx.fillStyle = '#4b5563'; // text-gray-600
+          ctx.fillText(line, descriptionX, currentY);
+          currentY += descriptionLineHeight;
+        });
+        
         ctx.restore();
       }
       
