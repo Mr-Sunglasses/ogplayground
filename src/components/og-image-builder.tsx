@@ -222,15 +222,16 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
         ctx.restore();
       }
       
-      // Add brand name next to logo in top left (text-3xl, 12px gap from 48px logo)
+      // Add brand name next to logo in top left (text-3xl, 12px gap from 48px logo, vertically centered)
       if (settings.brandName) {
         ctx.save();
         // Add text shadow for depth
         ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
         ctx.font = 'bold 30px "Geist Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
         ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle'; // Center text vertically
         const brandX = loadedImages.visualIdentity ? 124 : 64; // 64 + 48 + 12 = 124px
-        const brandY = 88; // Vertically centered with 48px logo
+        const brandY = 88; // Vertically centered with 48px logo (64 + 24 = 88)
         ctx.fillText(settings.brandName, brandX + 1, brandY + 1);
         
         // Add main text - text-gray-800 color
@@ -270,9 +271,9 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
       ctx.textAlign = 'left';
       
       const titleX = 64; // Left aligned with padding
-      const titleStartY = 350; // Lower-left positioning
+      const titleStartY = 280; // Moved up to prevent overlap
       const titleMaxWidth = 500; // Left half width minus padding
-      const lineHeight = 60; // leading-tight equivalent
+      const lineHeight = 58; // leading-tight equivalent (1.25 * 48px = 60px, but slightly tighter)
       
       const words = settings.title.split(' ');
       let line = '';
@@ -312,9 +313,9 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
         ctx.font = '24px "Geist Mono", "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace';
         ctx.textAlign = 'left';
         
-        // Position in bottom-left with 24px spacing from title
+        // Position in bottom-left with proper spacing from title
         const descriptionX = 64; // Left aligned with padding
-        const descriptionY = canvas.height - 100; // Bottom area positioning
+        const descriptionY = canvas.height - 80; // Moved closer to bottom for better spacing
         
         // Text shadow for description
         ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
