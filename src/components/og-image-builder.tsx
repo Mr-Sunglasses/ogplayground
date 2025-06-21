@@ -399,19 +399,53 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
     if (heroImageRef.current) heroImageRef.current.value = "";
   };
 
-  const fillExample = () => {
-    setSettings({
-      ...settings,
-      brandName: "ogplayground",
-      title: "Generate beautiful OpenGraph Images with ogplayground ♡ ༘*.ﾟ",
-      description: "-- because you've got better things to code than metatags.",
-      backgroundGradient: {
-        startColor: "#56ab2f",
-        endColor: "#a8e063",
-        preset: "Green",
-        gridType: "grid",
-      },
-    });
+  const fillExample = async () => {
+    // Helper function to convert URL to File object
+    const urlToFile = async (url: string, filename: string): Promise<File> => {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      return new File([blob], filename, { type: blob.type });
+    };
+
+    try {
+      // Load default images
+      const [visualIdentityFile, heroImageFile] = await Promise.all([
+        // Default logo with OG Playground branding
+        urlToFile('https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=100&h=100&fit=crop&crop=center&auto=format&q=80', 'default-logo.jpg'),
+        // Default hero image - beautiful gradient/tech background
+        urlToFile('https://raw.githubusercontent.com/Mr-Sunglasses/portfolio-kanishk/refs/heads/master/assets/image/20241019_BLP902.webp', 'default-hero.jpg')
+      ]);
+
+      setSettings({
+        ...settings,
+        visualIdentity: visualIdentityFile,
+        heroImage: heroImageFile,
+        brandName: "ogplayground",
+        title: "Generate beautiful OpenGraph Images with ogplayground ♡ ༘*.ﾟ",
+        description: "-- because you've got better things to code than metatags.",
+        backgroundGradient: {
+          startColor: "#ff9a8b",
+          endColor: "#a8edea",
+          preset: "Coral",
+          gridType: "grid",
+        },
+      });
+    } catch (error) {
+      console.error('Error loading default images:', error);
+      // Fallback to just text content if image loading fails
+      setSettings({
+        ...settings,
+        brandName: "ogplayground",
+        title: "Generate beautiful OpenGraph Images with ogplayground ♡ ༘*.ﾟ",
+        description: "-- because you've got better things to code than metatags.",
+        backgroundGradient: {
+          startColor: "#ff9a8b",
+          endColor: "#a8edea",
+          preset: "Coral",
+          gridType: "grid",
+        },
+      });
+    }
   };
 
   return (
