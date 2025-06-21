@@ -46,10 +46,10 @@ export const metadata: Metadata = {
     description:
       "Test, validate, and preview your Open Graph meta tags with live previews for Facebook, Twitter, LinkedIn, and more.",
     type: "website",
-    url: "https://ogplayground.dev",
+    url: "https://ogplayground.kanishkk.me/",
     images: [
       {
-        url: "/og-image.png",
+        url: "https://raw.githubusercontent.com/Mr-Sunglasses/portfolio-kanishk/refs/heads/master/assets/image/download.png",
         width: 1200,
         height: 630,
         alt: "OGPlayground - Test your Open Graph tags",
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     title: "OGPlayground - Open Graph Protocol Testing Playground",
     description:
       "Test, validate, and preview your Open Graph meta tags with live previews for Facebook, Twitter, LinkedIn, and more.",
-    images: ["/og-image.png"],
+    images: ["https://raw.githubusercontent.com/Mr-Sunglasses/portfolio-kanishk/refs/heads/master/assets/image/download.png"],
   },
 };
 

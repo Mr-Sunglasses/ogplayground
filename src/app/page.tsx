@@ -24,13 +24,13 @@ import {
 const defaultOGTags = `<meta property="og:title" content="OGPlayground - Open Graph Protocol Testing Playground" />
 <meta property="og:description" content="Test, validate, and preview your Open Graph meta tags with live previews for Facebook, Twitter, LinkedIn, and more." />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="https://ogplayground.dev" />
-<meta property="og:image" content="https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=1200&h=630&fit=crop&crop=entropy&auto=format" />
+<meta property="og:url" content="https://ogplayground.kanishkk.me/" />
+<meta property="og:image" content="https://raw.githubusercontent.com/Mr-Sunglasses/portfolio-kanishk/refs/heads/master/assets/image/download.png" />
 <meta property="og:site_name" content="OGPlayground" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="OGPlayground - Test Your Open Graph Tags" />
 <meta name="twitter:description" content="The ultimate playground for testing and validating Open Graph meta tags with real-time social media previews." />
-<meta name="twitter:image" content="https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=1200&h=630&fit=crop&crop=entropy&auto=format" />`;
+<meta name="twitter:image" content="https://raw.githubusercontent.com/Mr-Sunglasses/portfolio-kanishk/refs/heads/master/assets/image/download.png" />`;
 
 export default function Home() {
   const [ogTags, setOGTags] = useState(defaultOGTags);
