@@ -234,7 +234,7 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
         ctx.fillText(settings.brandName, brandX + 1, brandY + 1);
         
         // Add main text - text-gray-800 color
-        ctx.fillStyle = 'rgba(31, 41, 55, 1)'; // text-gray-800
+        ctx.fillStyle = '#1f2937'; // text-gray-800
         ctx.fillText(settings.brandName, brandX, brandY);
         ctx.restore();
       }
@@ -300,7 +300,7 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
         ctx.fillText(line, titleX + 2, currentY + 2);
         
         // Main text - text-gray-800 color
-        ctx.fillStyle = 'rgba(31, 41, 55, 1)'; // text-gray-800
+        ctx.fillStyle = '#1f2937'; // text-gray-800
         ctx.fillText(line, titleX, currentY);
         currentY += lineHeight;
       });
@@ -321,7 +321,7 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
         ctx.fillText(settings.description, descriptionX + 1, descriptionY + 1);
         
         // Main description text - text-gray-600 color
-        ctx.fillStyle = 'rgba(75, 85, 99, 1)'; // text-gray-600
+        ctx.fillStyle = '#4b5563'; // text-gray-600
         ctx.fillText(settings.description, descriptionX, descriptionY);
         ctx.restore();
       }
