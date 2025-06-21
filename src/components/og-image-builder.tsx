@@ -374,14 +374,14 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
   const fillExample = () => {
     setSettings({
       ...settings,
-      brandName: "og:pinata",
-      title: "Generate beautiful OpenGraph Images with Pinata ♡ ༘*.ﾟ",
+      brandName: "ogplayground",
+      title: "Generate beautiful OpenGraph Images with ogplayground ♡ ༘*.ﾟ",
       description: "-- because you've got better things to code than metatags.",
       backgroundGradient: {
-        startColor: "#f0f0f0",
-        endColor: "#e0e0e0",
-        preset: "Light",
-        gridType: "dots",
+        startColor: "#56ab2f",
+        endColor: "#a8e063",
+        preset: "Green",
+        gridType: "grid",
       },
     });
   };
