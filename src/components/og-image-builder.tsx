@@ -89,13 +89,15 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
   const handleInputChange = (field: string, value: string) => {
     if (field.includes('.')) {
       const [parent, child] = field.split('.');
-      setSettings(prev => ({
-        ...prev,
-        [parent]: {
-          ...(prev as any)[parent],
-          [child]: value
-        }
-      }));
+      if (parent === 'backgroundGradient') {
+        setSettings(prev => ({
+          ...prev,
+          backgroundGradient: {
+            ...prev.backgroundGradient,
+            [child]: value
+          }
+        }));
+      }
     } else {
       setSettings(prev => ({ ...prev, [field]: value }));
     }
@@ -289,7 +291,7 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
       
       const words = settings.title.split(' ');
       let line = '';
-      let lines: string[] = [];
+      const titleLines: string[] = [];
       
       for (let n = 0; n < words.length; n++) {
         const testLine = line + words[n] + ' ';
@@ -297,17 +299,17 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
         const testWidth = metrics.width;
         
         if (testWidth > titleMaxWidth && n > 0) {
-          lines.push(line.trim());
+          titleLines.push(line.trim());
           line = words[n] + ' ';
         } else {
           line = testLine;
         }
       }
-      lines.push(line.trim());
+      titleLines.push(line.trim());
       
       // Draw title lines with shadow
       let currentY = titleStartY;
-      lines.forEach((line, index) => {
+      titleLines.forEach((line) => {
         // Text shadow
         ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
         ctx.fillText(line, titleX + 2, currentY + 2);
@@ -370,7 +372,7 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
         
         // Draw description lines
         let currentY = descriptionStartY;
-        lines.forEach((line, index) => {
+        lines.forEach((line) => {
           // Text shadow for description
           ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
           ctx.fillText(line, descriptionX + 1, currentY + 1);
@@ -719,6 +721,7 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
               <div className="space-y-2">
                 <label className="text-sm font-medium block">Generated Image Preview</label>
                 <div className="border rounded-lg p-4 bg-muted/50">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={generatedImageUrl}
                     alt="Generated OG Image"
@@ -735,7 +738,7 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
               <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
                 <ImageIcon className="h-12 w-12 mx-auto text-muted-foreground/50 mb-2" />
                 <p className="text-sm text-muted-foreground">
-                  Fill in the details and click "Generate OG Image" to see your preview
+                  Fill in the details and click &quot;Generate OG Image&quot; to see your preview
                 </p>
               </div>
             )}
