@@ -7,6 +7,7 @@ import { SocialPreviews } from "@/components/social-previews";
 import { OGValidation } from "@/components/og-validation";
 import { UrlFetcher } from "@/components/url-fetcher";
 import { OGGenerator } from "@/components/og-generator";
+import { OGImageBuilder } from "@/components/og-image-builder";
 import {
   ResizablePanelGroup,
   ResizablePanel,
@@ -66,6 +67,8 @@ export default function Home() {
             <span>🔍 Validation</span>
             <span className="hidden xs:inline">•</span>
             <span>🎨 Templates</span>
+            <span className="hidden xs:inline">•</span>
+            <span className="hidden xs:inline">🖼️ Image Builder</span>
             <span className="hidden sm:inline">•</span>
             <span className="hidden sm:inline">🌐 URL Fetching</span>
             <span className="hidden sm:inline">•</span>
@@ -81,12 +84,15 @@ export default function Home() {
             <div className="border rounded-lg">
               <Tabs defaultValue="editor" className="h-full">
                 <div className="border-b p-2">
-                  <TabsList className="grid w-full grid-cols-3 h-8">
+                  <TabsList className="grid w-full grid-cols-4 h-8">
                     <TabsTrigger value="editor" className="text-xs sm:text-sm px-2">
                       Editor
                     </TabsTrigger>
                     <TabsTrigger value="generator" className="text-xs sm:text-sm px-2">
                       Generator
+                    </TabsTrigger>
+                    <TabsTrigger value="image-builder" className="text-xs sm:text-sm px-2">
+                      Image Builder
                     </TabsTrigger>
                     <TabsTrigger value="fetcher" className="text-xs sm:text-sm px-2">
                       Fetcher
@@ -103,6 +109,12 @@ export default function Home() {
                 <TabsContent value="generator" className="mt-0 p-4">
                   <div className="min-h-[400px] overflow-auto">
                     <OGGenerator onGenerate={setOGTags} />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="image-builder" className="mt-0 p-4">
+                  <div className="min-h-[400px] overflow-auto">
+                    <OGImageBuilder />
                   </div>
                 </TabsContent>
 
@@ -140,9 +152,10 @@ export default function Home() {
             <ResizablePanel defaultSize={50} minSize={30}>
               <div className="h-full p-4">
                 <Tabs defaultValue="editor" className="h-full flex flex-col">
-                  <TabsList className="grid w-full grid-cols-3">
+                  <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger value="editor">Editor</TabsTrigger>
                     <TabsTrigger value="generator">Generator</TabsTrigger>
+                    <TabsTrigger value="image-builder">Image Builder</TabsTrigger>
                     <TabsTrigger value="fetcher">URL Fetcher</TabsTrigger>
                   </TabsList>
 
@@ -155,6 +168,13 @@ export default function Home() {
                     className="flex-1 mt-4 overflow-auto"
                   >
                     <OGGenerator onGenerate={setOGTags} />
+                  </TabsContent>
+
+                  <TabsContent
+                    value="image-builder"
+                    className="flex-1 mt-4 overflow-auto"
+                  >
+                    <OGImageBuilder />
                   </TabsContent>
 
                   <TabsContent
