@@ -329,8 +329,9 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
         const descriptionX = 64; // Left aligned with padding
         const descriptionMaxWidth = 500; // Left half width minus padding
         const descriptionLineHeight = 32; // Line height for 24px font
-        const descriptionStartY = canvas.height - 120; // Start higher to allow for multiple lines
+        const descriptionStartY = canvas.height - 100; // Adjusted for 65-char limit
         
+        // With 65 character limit, description should fit in 1-2 lines max
         // Break description into lines
         const words = settings.description.split(' ');
         let line = '';
@@ -350,16 +351,9 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
         }
         lines.push(line.trim());
         
-        // Limit to maximum 3 lines to stay within canvas
-        if (lines.length > 3) {
-          lines = lines.slice(0, 3);
-          // Add ellipsis to last line if truncated
-          const lastLine = lines[2];
-          const ellipsisTest = lastLine + '...';
-          const ellipsisMetrics = ctx.measureText(ellipsisTest);
-          if (ellipsisMetrics.width <= descriptionMaxWidth) {
-            lines[2] = ellipsisTest;
-          }
+        // With 65 chars, should not exceed 2 lines, but safety check
+        if (lines.length > 2) {
+          lines = lines.slice(0, 2);
         }
         
         // Draw description lines
@@ -542,11 +536,11 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
                 placeholder="Brief description of your content"
                 value={settings.description}
                 onChange={(e) => handleInputChange("description", e.target.value)}
-                maxLength={120}
+                maxLength={65}
                 rows={3}
               />
               <p className="text-xs text-muted-foreground mt-1">
-                {settings.description.length}/120 characters
+                {settings.description.length}/65 characters
               </p>
             </div>
 
