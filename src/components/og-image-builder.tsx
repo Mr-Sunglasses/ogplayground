@@ -329,9 +329,9 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
         const descriptionX = 64; // Left aligned with padding
         const descriptionMaxWidth = 500; // Left half width minus padding
         const descriptionLineHeight = 32; // Line height for 24px font
-        const descriptionStartY = canvas.height - 100; // Adjusted for 65-char limit
+        const descriptionStartY = canvas.height - 130; // Adjusted for 120-char limit (3 lines max)
         
-        // With 65 character limit, description should fit in 1-2 lines max
+        // With 120 character limit, description should fit in 1-3 lines max
         // Break description into lines
         const words = settings.description.split(' ');
         let line = '';
@@ -351,9 +351,21 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
         }
         lines.push(line.trim());
         
-        // With 65 chars, should not exceed 2 lines, but safety check
-        if (lines.length > 2) {
-          lines = lines.slice(0, 2);
+        // With 120 chars, should not exceed 3 lines, but safety check
+        if (lines.length > 3) {
+          lines = lines.slice(0, 3);
+          // Add ellipsis to the last line if truncated
+          const lastLine = lines[2];
+          const ellipsis = '...';
+          const ellipsisWidth = ctx.measureText(ellipsis).width;
+          const availableWidth = descriptionMaxWidth - ellipsisWidth;
+          
+          // Trim last line to fit with ellipsis
+          let trimmedLine = lastLine;
+          while (ctx.measureText(trimmedLine).width > availableWidth && trimmedLine.length > 0) {
+            trimmedLine = trimmedLine.slice(0, -1);
+          }
+          lines[2] = trimmedLine + ellipsis;
         }
         
         // Draw description lines
@@ -536,11 +548,11 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
                 placeholder="Brief description of your content"
                 value={settings.description}
                 onChange={(e) => handleInputChange("description", e.target.value)}
-                maxLength={65}
+                maxLength={120}
                 rows={3}
               />
               <p className="text-xs text-muted-foreground mt-1">
-                {settings.description.length}/65 characters
+                {settings.description.length}/120 characters
               </p>
             </div>
 
