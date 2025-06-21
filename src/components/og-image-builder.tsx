@@ -411,7 +411,7 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
       // Load default images
       const [visualIdentityFile, heroImageFile] = await Promise.all([
         // Default logo with OG Playground branding
-        urlToFile('https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=100&h=100&fit=crop&crop=center&auto=format&q=80', 'default-logo.jpg'),
+        urlToFile('https://raw.githubusercontent.com/Mr-Sunglasses/portfolio-kanishk/refs/heads/master/assets/image/2024-11-09%2001.57.06.jpg', 'default-logo.jpg'),
         // Default hero image - beautiful gradient/tech background
         urlToFile('https://raw.githubusercontent.com/Mr-Sunglasses/portfolio-kanishk/refs/heads/master/assets/image/20241019_BLP902.webp', 'default-hero.jpg')
       ]);
@@ -421,7 +421,7 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
         visualIdentity: visualIdentityFile,
         heroImage: heroImageFile,
         brandName: "ogplayground",
-        title: "Generate beautiful OpenGraph Images with ogplayground ♡ ༘*.ﾟ",
+        title: "Generate beautiful OpenGraph Images with ogplayground ♡",
         description: "-- because you've got better things to code than metatags.",
         backgroundGradient: {
           startColor: "#ff9a8b",
@@ -436,7 +436,7 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
       setSettings({
         ...settings,
         brandName: "ogplayground",
-        title: "Generate beautiful OpenGraph Images with ogplayground ♡ ༘*.ﾟ",
+        title: "Generate beautiful OpenGraph Images with ogplayground ♡",
         description: "-- because you've got better things to code than metatags.",
         backgroundGradient: {
           startColor: "#ff9a8b",
