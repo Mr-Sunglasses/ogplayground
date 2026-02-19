@@ -96,6 +96,7 @@ open http://localhost:3000
 ```
 
 #### Using Docker
+
 ```bash
 # install the docker image
 docker pull mrsunglasses/ogplayground:latest

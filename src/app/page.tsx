@@ -1,25 +1,45 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import dynamic from "next/dynamic";
+import { useClientOnly } from "@/lib/client-only";
 import { Header } from "@/components/header";
-import { OGEditor } from "@/components/og-editor";
 import { SocialPreviews } from "@/components/social-previews";
 import { OGValidation } from "@/components/og-validation";
 import { UrlFetcher } from "@/components/url-fetcher";
 import { OGGenerator } from "@/components/og-generator";
 import { OGImageBuilder } from "@/components/og-image-builder";
+import { EditorTabs } from "@/components/editor-tabs";
+import { ErrorBoundary } from "@/components/error-boundary";
+import { Button } from "@/components/ui/button";
 import {
   ResizablePanelGroup,
   ResizablePanel,
   ResizableHandle,
 } from "@/components/ui/resizable";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   parseOGTags,
   validateOGTags,
   type OGData,
   type ValidationIssue,
 } from "@/lib/og-parser";
+import toast from "react-hot-toast";
+import { Share2 } from "lucide-react";
+
+const OGEditor = dynamic(
+  async () => {
+    const editorModule = await import("@/components/og-editor");
+    return editorModule.OGEditor;
+  },
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-sm text-muted-foreground">Loading editor...</div>
+      </div>
+    ),
+  },
+);
 
 const defaultOGTags = `<meta property="og:title" content="OGPlayground - Open Graph Protocol Testing Playground" />
 <meta property="og:description" content="Test, validate, and preview your Open Graph meta tags with live previews for Facebook, Twitter, LinkedIn, and more." />
@@ -34,18 +54,71 @@ const defaultOGTags = `<meta property="og:title" content="OGPlayground - Open Gr
 
 export default function Home() {
   const [ogTags, setOGTags] = useState(defaultOGTags);
-  const [parsedData, setParsedData] = useState<OGData>({});
-  const [validationIssues, setValidationIssues] = useState<ValidationIssue[]>(
-    [],
-  );
+  const isClient = useClientOnly();
 
-  // Parse and validate OG tags whenever they change
   useEffect(() => {
-    const parsed = parseOGTags(ogTags);
-    const issues = validateOGTags(parsed);
-    setParsedData(parsed);
-    setValidationIssues(issues);
-  }, [ogTags]);
+    if (!isClient) return;
+
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const shared = params.get("share");
+      if (shared) {
+        try {
+          const decoded = decodeURIComponent(atob(shared));
+          // Validate line-by-line to avoid ReDoS from nested quantifiers.
+          // Each non-blank line must be a <meta ...> tag.
+          const metaLinePattern = /^\s*<meta\s[^>]*>\s*$/i;
+          const lines = decoded.trim().split("\n");
+          if (
+            lines.length > 0 &&
+            lines.every((line) => line.trim() === "" || metaLinePattern.test(line))
+          ) {
+            setOGTags(decoded);
+          }
+        } catch {
+          // Use default
+        }
+      }
+    } catch {
+      // URLSearchParams might not be available during SSR
+    }
+  }, [isClient]);
+
+  const parsedData = useMemo<OGData>(() => {
+    if (!isClient) return {};
+    return parseOGTags(ogTags);
+  }, [ogTags, isClient]);
+
+  const validationIssues = useMemo<ValidationIssue[]>(() => {
+    if (!isClient) return [];
+    return validateOGTags(parsedData);
+  }, [parsedData, isClient]);
+
+  const handleShare = () => {
+    if (
+      typeof navigator === "undefined" ||
+      typeof window === "undefined" ||
+      !navigator.clipboard
+    ) {
+      toast.error("Clipboard not available");
+      return;
+    }
+    const encoded = btoa(encodeURIComponent(ogTags));
+    const url = `${window.location.origin}${window.location.pathname}?share=${encoded}`;
+    navigator.clipboard.writeText(url);
+    toast.success("Share URL copied to clipboard!");
+  };
+
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-2xl mb-4">🧪 OGPlayground</div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -73,6 +146,15 @@ export default function Home() {
             <span className="hidden sm:inline">🌐 URL Fetching</span>
             <span className="hidden sm:inline">•</span>
             <span className="hidden sm:inline">🎯 Multi-Platform</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleShare}
+              className="ml-2"
+            >
+              <Share2 className="h-3 w-3 mr-1" />
+              Share
+            </Button>
           </div>
         </div>
 
@@ -80,65 +162,40 @@ export default function Home() {
         <div className="lg:hidden">
           {/* Mobile Layout - Stacked */}
           <div className="space-y-6">
-            {/* Editor and Tools */}
             <div className="border rounded-lg">
-              <Tabs defaultValue="editor" className="h-full">
-                <div className="border-b p-2">
-                  <TabsList className="grid w-full grid-cols-5 h-8">
-                    <TabsTrigger value="editor" className="text-xs sm:text-sm px-2">
-                      Editor
-                    </TabsTrigger>
-                    <TabsTrigger value="generator" className="text-xs sm:text-sm px-2">
-                      Generator
-                    </TabsTrigger>
-                    <TabsTrigger value="image-builder" className="text-xs sm:text-sm px-2">
-                      Builder
-                    </TabsTrigger>
-                    <TabsTrigger value="fetcher" className="text-xs sm:text-sm px-2">
-                      Fetcher
-                    </TabsTrigger>
-                    <TabsTrigger value="validation" className="text-xs sm:text-sm px-2">
-                      Validation
-                    </TabsTrigger>
-                  </TabsList>
-                </div>
-
-                <TabsContent value="editor" className="mt-0 p-4">
-                  <div className="min-h-[400px]">
-                    <OGEditor value={ogTags} onChange={setOGTags} />
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="generator" className="mt-0 p-4">
-                  <div className="min-h-[400px] overflow-auto">
-                    <OGGenerator onGenerate={setOGTags} />
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="image-builder" className="mt-0 p-4">
-                  <div className="min-h-[400px] overflow-auto">
-                    <OGImageBuilder />
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="fetcher" className="mt-0 p-4">
-                  <div className="min-h-[400px] overflow-auto">
-                    <UrlFetcher onOGTagsFetched={setOGTags} />
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="validation" className="mt-0 p-4">
-                  <div className="min-h-[400px] overflow-auto">
-                    <OGValidation issues={validationIssues} />
-                  </div>
-                </TabsContent>
-              </Tabs>
+              <EditorTabs
+                variant="mobile"
+                editor={<OGEditor value={ogTags} onChange={setOGTags} />}
+                generator={<OGGenerator onGenerate={setOGTags} />}
+                imageBuilder={<OGImageBuilder />}
+                fetcher={<UrlFetcher onOGTagsFetched={setOGTags} />}
+                validation={<OGValidation issues={validationIssues} />}
+              />
             </div>
 
-            {/* Social Previews - Now with more space */}
+            {/* Social Previews */}
             <div className="border rounded-lg p-4">
               <div className="min-h-[600px]">
-                <SocialPreviews ogData={parsedData} />
+                <ErrorBoundary
+                  fallback={
+                    <div className="h-full flex items-center justify-center p-4 border rounded-lg">
+                      <div className="text-center">
+                        <p className="text-muted-foreground mb-2">
+                          Previews failed to load
+                        </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.location.reload()}
+                        >
+                          Reload page
+                        </Button>
+                      </div>
+                    </div>
+                  }
+                >
+                  <SocialPreviews ogData={parsedData} />
+                </ErrorBoundary>
               </div>
             </div>
           </div>
@@ -153,47 +210,14 @@ export default function Home() {
             {/* Left Panel - Editor and Tools */}
             <ResizablePanel defaultSize={50} minSize={30}>
               <div className="h-full p-4">
-                <Tabs defaultValue="editor" className="h-full flex flex-col">
-                  <TabsList className="grid w-full grid-cols-5">
-                    <TabsTrigger value="editor">Editor</TabsTrigger>
-                    <TabsTrigger value="generator">Generator</TabsTrigger>
-                    <TabsTrigger value="image-builder">Image Builder</TabsTrigger>
-                    <TabsTrigger value="fetcher">URL Fetcher</TabsTrigger>
-                    <TabsTrigger value="validation">Validation</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="editor" className="flex-1 mt-4">
-                    <OGEditor value={ogTags} onChange={setOGTags} />
-                  </TabsContent>
-
-                  <TabsContent
-                    value="generator"
-                    className="flex-1 mt-4 overflow-auto"
-                  >
-                    <OGGenerator onGenerate={setOGTags} />
-                  </TabsContent>
-
-                  <TabsContent
-                    value="image-builder"
-                    className="flex-1 mt-4 overflow-auto"
-                  >
-                    <OGImageBuilder />
-                  </TabsContent>
-
-                  <TabsContent
-                    value="fetcher"
-                    className="flex-1 mt-4 overflow-auto"
-                  >
-                    <UrlFetcher onOGTagsFetched={setOGTags} />
-                  </TabsContent>
-
-                  <TabsContent
-                    value="validation"
-                    className="flex-1 mt-4 overflow-auto"
-                  >
-                    <OGValidation issues={validationIssues} />
-                  </TabsContent>
-                </Tabs>
+                <EditorTabs
+                  variant="desktop"
+                  editor={<OGEditor value={ogTags} onChange={setOGTags} />}
+                  generator={<OGGenerator onGenerate={setOGTags} />}
+                  imageBuilder={<OGImageBuilder />}
+                  fetcher={<UrlFetcher onOGTagsFetched={setOGTags} />}
+                  validation={<OGValidation issues={validationIssues} />}
+                />
               </div>
             </ResizablePanel>
 
@@ -202,7 +226,26 @@ export default function Home() {
             {/* Right Panel - Social Previews Only (Full Height) */}
             <ResizablePanel defaultSize={50} minSize={30}>
               <div className="h-full p-4">
-                <SocialPreviews ogData={parsedData} />
+                <ErrorBoundary
+                  fallback={
+                    <div className="h-full flex items-center justify-center p-4 border rounded-lg">
+                      <div className="text-center">
+                        <p className="text-muted-foreground mb-2">
+                          Previews failed to load
+                        </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.location.reload()}
+                        >
+                          Reload page
+                        </Button>
+                      </div>
+                    </div>
+                  }
+                >
+                  <SocialPreviews ogData={parsedData} />
+                </ErrorBoundary>
               </div>
             </ResizablePanel>
           </ResizablePanelGroup>
@@ -211,7 +254,9 @@ export default function Home() {
         {/* Features Section */}
         <div className="py-8 sm:py-12 border-t">
           <div className="text-center mb-6 sm:mb-8">
-            <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Why Use OGPlayground?</h2>
+            <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">
+              Why Use OGPlayground?
+            </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto px-4">
               Perfect your social media presence with our comprehensive Open
               Graph testing tools.
@@ -223,7 +268,9 @@ export default function Home() {
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
                 <span className="text-xl sm:text-2xl">🎨</span>
               </div>
-              <h3 className="font-semibold mb-2 text-sm sm:text-base">Live Previews</h3>
+              <h3 className="font-semibold mb-2 text-sm sm:text-base">
+                Live Previews
+              </h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
                 See exactly how your content will appear on Facebook, Twitter,
                 LinkedIn, and Discord with pixel-perfect previews.
@@ -234,7 +281,9 @@ export default function Home() {
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
                 <span className="text-xl sm:text-2xl">✅</span>
               </div>
-              <h3 className="font-semibold mb-2 text-sm sm:text-base">Smart Validation</h3>
+              <h3 className="font-semibold mb-2 text-sm sm:text-base">
+                Smart Validation
+              </h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
                 Get instant feedback on your OG tags with comprehensive
                 validation rules and actionable suggestions for improvement.
@@ -245,7 +294,9 @@ export default function Home() {
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
                 <span className="text-xl sm:text-2xl">🚀</span>
               </div>
-              <h3 className="font-semibold mb-2 text-sm sm:text-base">Ready-to-Use Templates</h3>
+              <h3 className="font-semibold mb-2 text-sm sm:text-base">
+                Ready-to-Use Templates
+              </h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
                 Start quickly with pre-built templates for blog posts, products,
                 events, and more. Perfect for any content type.
@@ -256,7 +307,9 @@ export default function Home() {
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
                 <span className="text-xl sm:text-2xl">🌐</span>
               </div>
-              <h3 className="font-semibold mb-2 text-sm sm:text-base">URL Analysis</h3>
+              <h3 className="font-semibold mb-2 text-sm sm:text-base">
+                URL Analysis
+              </h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
                 Fetch and analyze existing websites to see their Open Graph
                 implementation and learn from successful examples.
@@ -267,7 +320,9 @@ export default function Home() {
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 dark:bg-red-900 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
                 <span className="text-xl sm:text-2xl">⚡</span>
               </div>
-              <h3 className="font-semibold mb-2 text-sm sm:text-base">Modern Editor</h3>
+              <h3 className="font-semibold mb-2 text-sm sm:text-base">
+                Modern Editor
+              </h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
                 Code with confidence using our Monaco-powered editor with syntax
                 highlighting, auto-completion, and error detection.
@@ -278,7 +333,9 @@ export default function Home() {
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-teal-100 dark:bg-teal-900 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
                 <span className="text-xl sm:text-2xl">🎯</span>
               </div>
-              <h3 className="font-semibold mb-2 text-sm sm:text-base">Form Generator</h3>
+              <h3 className="font-semibold mb-2 text-sm sm:text-base">
+                Form Generator
+              </h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
                 No coding needed! Use our intuitive form to generate perfect OG
                 tags with real-time character counts and tips.

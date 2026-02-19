@@ -14,18 +14,6 @@ interface UrlFetcherProps {
   onOGTagsFetched: (html: string) => void;
 }
 
-// Function to extract OG tags from HTML content
-function extractOGTags(html: string): string {
-  const ogTagRegex = /<meta\s+(?:property|name)=["'](?:og:|twitter:)[^"']*["'][^>]*>/gi;
-  const matches = html.match(ogTagRegex);
-  
-  if (matches && matches.length > 0) {
-    return matches.join('\n');
-  }
-  
-  return '';
-}
-
 export function UrlFetcher({ onOGTagsFetched }: UrlFetcherProps) {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
@@ -56,72 +44,27 @@ export function UrlFetcher({ onOGTagsFetched }: UrlFetcherProps) {
 
     try {
       logger.info('Starting URL fetch process', { url: processedUrl }, 'URLFetcher');
+      logger.debug('Trying internal API route', { url: processedUrl }, 'URLFetcher');
 
-      // Try internal API route first
-      try {
-        logger.debug('Trying internal API route', { url: processedUrl }, 'URLFetcher');
-        
-        const response = await fetch("/api/fetch-url", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: processedUrl }),
-        });
+      const response = await fetch("/api/fetch-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: processedUrl }),
+      });
 
-        if (response.ok) {
-          const result = await response.json();
-          if (result.ogTags) {
-            onOGTagsFetched(result.ogTags);
-            toast.success("OG tags fetched successfully!");
-            return;
-          }
-        }
-        throw new Error("Internal API failed");
-      } catch (apiError) {
-        logger.warn('Internal API failed', { error: apiError, url: processedUrl }, 'URLFetcher');
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        const message = body?.error || `Request failed with status ${response.status}`;
+        throw new Error(message);
       }
 
-      // Fallback to proxy services
-      logger.info('Trying external proxy services as fallback', { url: processedUrl }, 'URLFetcher');
-      
-      const proxyServices = [
-        `https://api.allorigins.win/get?url=${encodeURIComponent(processedUrl)}`,
-        `https://cors-anywhere.herokuapp.com/${processedUrl}`,
-        `https://thingproxy.freeboard.io/fetch/${processedUrl}`,
-      ];
-
-      for (const proxyUrl of proxyServices) {
-        try {
-          logger.debug('Trying proxy service', { proxyUrl, originalUrl: processedUrl }, 'URLFetcher');
-          
-          const response = await fetch(proxyUrl, {
-            headers: {
-              "User-Agent": "Mozilla/5.0 (compatible; OGPlayground/1.0)",
-              "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            },
-          });
-
-          if (response.ok) {
-            let html = await response.text();
-            
-            // Handle allorigins response format
-            if (proxyUrl.includes('allorigins')) {
-              const data = JSON.parse(html);
-              html = data.contents;
-            }
-
-            const ogTags = extractOGTags(html);
-            if (ogTags && ogTags.trim()) {
-              onOGTagsFetched(ogTags);
-              toast.success("OG tags fetched successfully!");
-              return;
-            }
-          }
-        } catch (proxyError) {
-          logger.warn('Proxy service failed', { proxyUrl, error: proxyError }, 'URLFetcher');
-        }
+      const result = await response.json();
+      if (result.ogTags) {
+        onOGTagsFetched(result.ogTags);
+        toast.success("OG tags fetched successfully!");
+      } else {
+        throw new Error("No OG tags found on this page.");
       }
-
-      throw new Error("All fetch methods failed. The URL might not be accessible or have CORS restrictions.");
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to fetch URL";
       logger.error('URL fetch error', { url: processedUrl, error: errorMessage }, 'URLFetcher');
@@ -132,7 +75,7 @@ export function UrlFetcher({ onOGTagsFetched }: UrlFetcherProps) {
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       fetchUrl();
     }
@@ -180,7 +123,7 @@ export function UrlFetcher({ onOGTagsFetched }: UrlFetcherProps) {
             placeholder="example.com or https://example.com"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyDown}
             disabled={loading}
             className="flex-1"
           />
@@ -201,8 +144,7 @@ export function UrlFetcher({ onOGTagsFetched }: UrlFetcherProps) {
             <Badge variant="secondary" className="mr-2">
               How it works
             </Badge>
-            We first try our server-side API, then fallback to CORS proxies if
-            needed.
+            We use our server-side API to fetch OG tags from the provided URL.
           </p>
           <p className="ml-20">
             Some websites may block requests or have strict security policies.
