@@ -9,6 +9,25 @@ RUN apk add --no-cache libc6-compat
 
 # Install dependencies separately to optimize caching
 COPY package.json package-lock.json ./
+
+# macOS npm writes version-less placeholder entries for optional platform
+# binaries (e.g. @rollup/rollup-win32-arm64-msvc) that cause `npm ci` to
+# fail with "Missing: ... from lock file" on Linux. Remove those entries
+# before installing — they are safe to skip on Linux.
+RUN node -e "\
+  const fs = require('fs');\
+  const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));\
+  let count = 0;\
+  for (const [key, pkg] of Object.entries(lock.packages)) {\
+    if (pkg.optional && !pkg.version) {\
+      delete lock.packages[key];\
+      count++;\
+    }\
+  }\
+  fs.writeFileSync('package-lock.json', JSON.stringify(lock, null, 2));\
+  if (count) console.log('Removed ' + count + ' version-less optional platform entries.');\
+"
+
 RUN npm ci
 
 # Copy the rest of the application
