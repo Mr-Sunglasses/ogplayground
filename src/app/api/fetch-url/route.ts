@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
+import { escapeHtml } from "@/lib/escape-html";
 import * as cheerio from "cheerio";
 
 interface RateLimitEntry {
@@ -180,7 +181,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Guard against excessively large responses before loading into cheerio.
+    const MAX_HTML_BYTES = 2 * 1024 * 1024; // 2 MB
+    const contentLength = response.headers.get("content-length");
+    if (contentLength && parseInt(contentLength, 10) > MAX_HTML_BYTES) {
+      return NextResponse.json(
+        { error: "Response too large to process (max 2 MB)." },
+        {
+          status: 413,
+          headers: {
+            "X-RateLimit-Limit": RATE_LIMIT.toString(),
+            "X-RateLimit-Remaining": rateLimit.remaining.toString(),
+            "X-RateLimit-Reset": Math.ceil(
+              rateLimit.resetTime / 1000,
+            ).toString(),
+          },
+        },
+      );
+    }
+
     const html = await response.text();
+
+    if (html.length > MAX_HTML_BYTES) {
+      return NextResponse.json(
+        { error: "Response too large to process (max 2 MB)." },
+        {
+          status: 413,
+          headers: {
+            "X-RateLimit-Limit": RATE_LIMIT.toString(),
+            "X-RateLimit-Remaining": rateLimit.remaining.toString(),
+            "X-RateLimit-Reset": Math.ceil(
+              rateLimit.resetTime / 1000,
+            ).toString(),
+          },
+        },
+      );
+    }
 
     const $ = cheerio.load(html);
     const ogTagsList: string[] = [];
@@ -189,8 +225,12 @@ export async function POST(request: NextRequest) {
       const attr = $(element);
       const property = attr.attr("property") || attr.attr("name");
       const content = attr.attr("content");
-      if (property && content) {
-        ogTagsList.push(`<meta property="${property}" content="${content}" />`);
+      if (property && content !== undefined) {
+        // Escape attribute values so they are safe in HTML output.
+        // parseOGTags will decode entities when displaying.
+        ogTagsList.push(
+          `<meta property="${escapeHtml(property)}" content="${escapeHtml(content)}" />`,
+        );
       }
     });
 

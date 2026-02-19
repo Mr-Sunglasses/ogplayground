@@ -124,6 +124,13 @@ describe("parseOGTags", () => {
     expect(result.title).toBe("Hello \u2014 World");
   });
 
+  it("does not double-decode &amp;amp; — single pass only", () => {
+    const html = `<meta property="og:title" content="&amp;amp;" />`;
+    const result = parseOGTags(html);
+    // &amp;amp; should decode to &amp; (not &), since decoding is a single pass
+    expect(result.title).toBe("&amp;");
+  });
+
   it("collects multiple og:locale:alternate values", () => {
     const html = `
       <meta property="og:locale:alternate" content="fr_FR" />

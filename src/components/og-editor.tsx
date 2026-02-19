@@ -322,10 +322,27 @@ export function OGEditor({ value, onChange }: OGEditorProps) {
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
+        if (file.size > 1024 * 1024) {
+          toast.error("File too large (max 1 MB)");
+          return;
+        }
         const text = await file.text();
         try {
           const config = JSON.parse(text);
           if (config.ogTags && typeof config.ogTags === "string") {
+            // Validate that the imported content contains only meta tags.
+            const metaLinePattern = /^\s*<meta\s[^>]*>\s*$/i;
+            const importLines = config.ogTags.split("\n");
+            const isValid = importLines.every(
+              (line: string) =>
+                line.trim() === "" || metaLinePattern.test(line),
+            );
+            if (!isValid) {
+              toast.error(
+                "Invalid content: imported file must contain only meta tags",
+              );
+              return;
+            }
             onChange(config.ogTags);
             toast.success("Imported OG tags successfully!");
           } else {

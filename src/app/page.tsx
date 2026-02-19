@@ -65,9 +65,14 @@ export default function Home() {
       if (shared) {
         try {
           const decoded = decodeURIComponent(atob(shared));
-          // Only accept content that contains meta tags
-          const metaTagPattern = /^(\s*<meta\s[^>]*>\s*)+$/i;
-          if (metaTagPattern.test(decoded.trim())) {
+          // Validate line-by-line to avoid ReDoS from nested quantifiers.
+          // Each non-blank line must be a <meta ...> tag.
+          const metaLinePattern = /^\s*<meta\s[^>]*>\s*$/i;
+          const lines = decoded.trim().split("\n");
+          if (
+            lines.length > 0 &&
+            lines.every((line) => line.trim() === "" || metaLinePattern.test(line))
+          ) {
             setOGTags(decoded);
           }
         } catch {
