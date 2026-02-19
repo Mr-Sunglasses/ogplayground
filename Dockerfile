@@ -14,7 +14,7 @@ RUN npm ci
 # Copy the rest of the application
 COPY . .
 
-# Build the Next.js app
+# Build the Next.js app (produces .next/standalone)
 RUN npm run build
 
 ### Step 2: Production Stage ###
@@ -25,10 +25,9 @@ WORKDIR /app
 # Install necessary production deps
 RUN apk add --no-cache libc6-compat
 
-# Only copy production deps and build output
-COPY --from=builder /app/package.json /app/package-lock.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
+# Copy standalone server and static assets
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
 # Optional: Set NODE_ENV explicitly
@@ -37,4 +36,4 @@ ENV PORT=3000
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+CMD ["node", "server.js"]

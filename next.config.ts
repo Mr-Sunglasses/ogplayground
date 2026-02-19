@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   images: {
     remotePatterns: [
       {
@@ -8,6 +9,8 @@ const nextConfig: NextConfig = {
         hostname: "**",
       },
     ],
+    dangerouslyAllowSVG: false,
+    contentDispositionType: "attachment",
   },
 };
 

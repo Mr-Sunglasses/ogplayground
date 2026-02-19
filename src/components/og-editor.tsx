@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Editor from "@monaco-editor/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -204,24 +204,32 @@ export function OGEditor({ value, onChange }: OGEditorProps) {
   const [useSimpleEditor, setUseSimpleEditor] = useState(false);
   const [editorError, setEditorError] = useState(false);
 
+  // Keep a ref to always have the latest value without re-registering listeners
+  const valueRef = useRef(value);
+  useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
+
+  // Mount + resize listener
   useEffect(() => {
     setMounted(true);
 
-    // Check if mobile on mount and resize
     const checkMobile = () => {
       const mobile = window.innerWidth < 640;
       setIsMobile(mobile);
 
-      // On mobile, start with simple editor for better reliability
-      if (mobile && !mounted) {
+      if (mobile) {
         setUseSimpleEditor(true);
       }
     };
 
     checkMobile();
     window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
-    // Add error handling for Monaco editor
+  // Monaco error handler
+  useEffect(() => {
     const handleError = (event: ErrorEvent) => {
       if (event.message && event.message.includes("monaco")) {
         logger.warn(
@@ -234,16 +242,20 @@ export function OGEditor({ value, onChange }: OGEditorProps) {
     };
 
     window.addEventListener("error", handleError);
+    return () => window.removeEventListener("error", handleError);
+  }, []);
 
+  // Keyboard shortcuts
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
         e.preventDefault();
-        navigator.clipboard.writeText(value);
+        navigator.clipboard.writeText(valueRef.current);
         toast.success("Copied to clipboard!");
       }
       if ((e.ctrlKey || e.metaKey) && e.key === "s") {
         e.preventDefault();
-        const blob = new Blob([value], { type: "text/html" });
+        const blob = new Blob([valueRef.current], { type: "text/html" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
@@ -257,13 +269,8 @@ export function OGEditor({ value, onChange }: OGEditorProps) {
     };
 
     window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("resize", checkMobile);
-      window.removeEventListener("error", handleError);
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [mounted, value]);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(value);

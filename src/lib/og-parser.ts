@@ -1,3 +1,5 @@
+import { escapeHtml } from "@/lib/escape-html";
+
 export interface OGData {
   title?: string;
   description?: string;
@@ -41,18 +43,37 @@ export interface ValidationIssue {
   suggestion?: string;
 }
 
+function decodeHtmlEntities(text: string): string {
+  return text
+    .replace(/&#(\d+);/g, (_, num) => String.fromCharCode(parseInt(num, 10)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) =>
+      String.fromCharCode(parseInt(hex, 16)),
+    )
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
+}
+
 export function parseOGTags(html: string): OGData {
   const ogData: OGData = {};
 
-  // Parse meta tags using regex for SSR compatibility
+  if (html.length > 50_000) return ogData;
+
+  // Parse meta tags using regex for SSR compatibility.
+  // Uses backreferences (\1 / \2) so an apostrophe inside double-quoted
+  // content (or vice-versa) does not prematurely end the match.
   const metaRegex =
-    /<(?:meta)\s+(?:property|name)=["']([^"']+)["'][^>]*content=["']([^"']+)["'][^>]*>/gi;
+    /<meta\s+(?:property|name)=(["'])([^"']+?)\1[^>]*content=(["'])([\s\S]*?)\3[^>]*>/gi;
   let match: RegExpExecArray | null;
 
   while ((match = metaRegex.exec(html)) !== null) {
-    const property = match[1];
-    const content = match[2];
-    if (!property || !content) continue;
+    const property = match[2];
+    const rawContent = match[4];
+    if (!property || rawContent === undefined) continue;
+    const content = decodeHtmlEntities(rawContent);
+    if (!content) continue;
 
     // Open Graph tags
     switch (property) {
@@ -371,11 +392,3 @@ export function generateOGTags(data: Partial<OGData>): string {
   return tags.join("\n");
 }
 
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}

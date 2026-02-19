@@ -7,6 +7,11 @@ interface RateLimitEntry {
   resetTime: number;
 }
 
+// NOTE: This in-memory rate limiter is per-process. In a multi-instance
+// deployment (e.g. multiple containers or serverless functions) each
+// instance maintains its own map, so the effective limit is multiplied
+// by the number of instances. For stricter guarantees use an external
+// store such as Redis.
 const rateLimitMap = new Map<string, RateLimitEntry>();
 const RATE_LIMIT = 10;
 const WINDOW_MS = 60 * 1000;

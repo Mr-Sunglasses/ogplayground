@@ -9,6 +9,7 @@ import { OGValidation } from "@/components/og-validation";
 import { UrlFetcher } from "@/components/url-fetcher";
 import { OGGenerator } from "@/components/og-generator";
 import { OGImageBuilder } from "@/components/og-image-builder";
+import { EditorTabs } from "@/components/editor-tabs";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +17,6 @@ import {
   ResizablePanel,
   ResizableHandle,
 } from "@/components/ui/resizable";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   parseOGTags,
   validateOGTags,
@@ -64,7 +64,12 @@ export default function Home() {
       const shared = params.get("share");
       if (shared) {
         try {
-          setOGTags(decodeURIComponent(atob(shared)));
+          const decoded = decodeURIComponent(atob(shared));
+          // Only accept content that contains meta tags
+          const metaTagPattern = /^(\s*<meta\s[^>]*>\s*)+$/i;
+          if (metaTagPattern.test(decoded.trim())) {
+            setOGTags(decoded);
+          }
         } catch {
           // Use default
         }
@@ -152,104 +157,18 @@ export default function Home() {
         <div className="lg:hidden">
           {/* Mobile Layout - Stacked */}
           <div className="space-y-6">
-            {/* Editor and Tools */}
             <div className="border rounded-lg">
-              <Tabs defaultValue="editor" className="h-full">
-                <div className="border-b p-2">
-                  <TabsList className="grid w-full grid-cols-5 h-8">
-                    <TabsTrigger
-                      value="editor"
-                      className="text-xs sm:text-sm px-2"
-                    >
-                      Editor
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="generator"
-                      className="text-xs sm:text-sm px-2"
-                    >
-                      Generator
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="image-builder"
-                      className="text-xs sm:text-sm px-2"
-                    >
-                      Builder
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="fetcher"
-                      className="text-xs sm:text-sm px-2"
-                    >
-                      Fetcher
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="validation"
-                      className="text-xs sm:text-sm px-2"
-                    >
-                      Validation
-                    </TabsTrigger>
-                  </TabsList>
-                </div>
-
-                <TabsContent value="editor" className="mt-0 p-4">
-                  <div className="min-h-[400px]">
-                    <ErrorBoundary
-                      fallback={
-                        <div className="h-full flex items-center justify-center p-4 border rounded-lg">
-                          <div className="text-center">
-                            <p className="text-muted-foreground mb-2">
-                              Editor failed to load
-                            </p>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => window.location.reload()}
-                            >
-                              Reload page
-                            </Button>
-                          </div>
-                        </div>
-                      }
-                    >
-                      <OGEditor value={ogTags} onChange={setOGTags} />
-                    </ErrorBoundary>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="generator" className="mt-0 p-4">
-                  <div className="min-h-[400px] overflow-auto">
-                    <ErrorBoundary>
-                      <OGGenerator onGenerate={setOGTags} />
-                    </ErrorBoundary>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="image-builder" className="mt-0 p-4">
-                  <div className="min-h-[400px] overflow-auto">
-                    <ErrorBoundary>
-                      <OGImageBuilder />
-                    </ErrorBoundary>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="fetcher" className="mt-0 p-4">
-                  <div className="min-h-[400px] overflow-auto">
-                    <ErrorBoundary>
-                      <UrlFetcher onOGTagsFetched={setOGTags} />
-                    </ErrorBoundary>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="validation" className="mt-0 p-4">
-                  <div className="min-h-[400px] overflow-auto">
-                    <ErrorBoundary>
-                      <OGValidation issues={validationIssues} />
-                    </ErrorBoundary>
-                  </div>
-                </TabsContent>
-              </Tabs>
+              <EditorTabs
+                variant="mobile"
+                editor={<OGEditor value={ogTags} onChange={setOGTags} />}
+                generator={<OGGenerator onGenerate={setOGTags} />}
+                imageBuilder={<OGImageBuilder />}
+                fetcher={<UrlFetcher onOGTagsFetched={setOGTags} />}
+                validation={<OGValidation issues={validationIssues} />}
+              />
             </div>
 
-            {/* Social Previews - Now with more space */}
+            {/* Social Previews */}
             <div className="border rounded-lg p-4">
               <div className="min-h-[600px]">
                 <ErrorBoundary
@@ -286,76 +205,14 @@ export default function Home() {
             {/* Left Panel - Editor and Tools */}
             <ResizablePanel defaultSize={50} minSize={30}>
               <div className="h-full p-4">
-                <Tabs defaultValue="editor" className="h-full flex flex-col">
-                  <TabsList className="grid w-full grid-cols-5">
-                    <TabsTrigger value="editor">Editor</TabsTrigger>
-                    <TabsTrigger value="generator">Generator</TabsTrigger>
-                    <TabsTrigger value="image-builder">
-                      Image Builder
-                    </TabsTrigger>
-                    <TabsTrigger value="fetcher">URL Fetcher</TabsTrigger>
-                    <TabsTrigger value="validation">Validation</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="editor" className="flex-1 mt-4">
-                    <ErrorBoundary
-                      fallback={
-                        <div className="h-full flex items-center justify-center p-4 border rounded-lg">
-                          <div className="text-center">
-                            <p className="text-muted-foreground mb-2">
-                              Editor failed to load
-                            </p>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => window.location.reload()}
-                            >
-                              Reload page
-                            </Button>
-                          </div>
-                        </div>
-                      }
-                    >
-                      <OGEditor value={ogTags} onChange={setOGTags} />
-                    </ErrorBoundary>
-                  </TabsContent>
-
-                  <TabsContent
-                    value="generator"
-                    className="flex-1 mt-4 overflow-auto"
-                  >
-                    <ErrorBoundary>
-                      <OGGenerator onGenerate={setOGTags} />
-                    </ErrorBoundary>
-                  </TabsContent>
-
-                  <TabsContent
-                    value="image-builder"
-                    className="flex-1 mt-4 overflow-auto"
-                  >
-                    <ErrorBoundary>
-                      <OGImageBuilder />
-                    </ErrorBoundary>
-                  </TabsContent>
-
-                  <TabsContent
-                    value="fetcher"
-                    className="flex-1 mt-4 overflow-auto"
-                  >
-                    <ErrorBoundary>
-                      <UrlFetcher onOGTagsFetched={setOGTags} />
-                    </ErrorBoundary>
-                  </TabsContent>
-
-                  <TabsContent
-                    value="validation"
-                    className="flex-1 mt-4 overflow-auto"
-                  >
-                    <ErrorBoundary>
-                      <OGValidation issues={validationIssues} />
-                    </ErrorBoundary>
-                  </TabsContent>
-                </Tabs>
+                <EditorTabs
+                  variant="desktop"
+                  editor={<OGEditor value={ogTags} onChange={setOGTags} />}
+                  generator={<OGGenerator onGenerate={setOGTags} />}
+                  imageBuilder={<OGImageBuilder />}
+                  fetcher={<UrlFetcher onOGTagsFetched={setOGTags} />}
+                  validation={<OGValidation issues={validationIssues} />}
+                />
               </div>
             </ResizablePanel>
 
