@@ -42,20 +42,17 @@ export interface ValidationIssue {
 }
 
 export function parseOGTags(html: string): OGData {
-  // Create a temporary DOM element to parse HTML
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, "text/html");
-
   const ogData: OGData = {};
 
-  // Get all meta tags
-  const metaTags = doc.querySelectorAll("meta");
+  // Parse meta tags using regex for SSR compatibility
+  const metaRegex =
+    /<(?:meta)\s+(?:property|name)=["']([^"']+)["'][^>]*content=["']([^"']+)["'][^>]*>/gi;
+  let match: RegExpExecArray | null;
 
-  metaTags.forEach((meta) => {
-    const property = meta.getAttribute("property") || meta.getAttribute("name");
-    const content = meta.getAttribute("content");
-
-    if (!property || !content) return;
+  while ((match = metaRegex.exec(html)) !== null) {
+    const property = match[1];
+    const content = match[2];
+    if (!property || !content) continue;
 
     // Open Graph tags
     switch (property) {
@@ -143,7 +140,7 @@ export function parseOGTags(html: string): OGData {
         ogData.productCondition = content;
         break;
     }
-  });
+  }
 
   return ogData;
 }

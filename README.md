@@ -96,6 +96,7 @@ open http://localhost:3000
 ```
 
 #### Using Docker
+
 ```bash
 # install the docker image
 docker pull mrsunglasses/ogplayground:latest
@@ -311,6 +312,65 @@ Fetches OG tags from a given URL using server-side rendering to avoid CORS issue
   "error": "Failed to fetch URL"
 }
 ```
+
+### `POST /api/generate-og-image`
+
+Generates custom OG images using the @vercel/og library. Supports gradient backgrounds, grid patterns, and custom branding.
+
+**Request Body (multipart/form-data):**
+
+| Parameter   | Type   | Required | Default | Description                      |
+| ----------- | ------ | -------- | ------- | -------------------------------- |
+| title       | string | Yes      | -       | Main title text                  |
+| description | string | No       | -       | Description text                 |
+| brandName   | string | No       | -       | Brand/website name               |
+| startColor  | string | No       | #667eea | Gradient start color             |
+| endColor    | string | No       | #764ba2 | Gradient end color               |
+| gridType    | string | No       | none    | Grid pattern (none, dots, lines) |
+
+**Example Request:**
+
+```bash
+curl -X POST http://localhost:3000/api/generate-og-image \
+  -F "title=My OG Image" \
+  -F "description=A beautiful Open Graph image" \
+  -F "brandName=My Brand" \
+  -F "startColor=#667eea" \
+  -F "endColor=#764ba2" \
+  -F "gridType=dots"
+```
+
+**Response:**
+
+```json
+{
+  "message": "OG Image generation is in development",
+  "settings": {
+    "title": "My OG Image",
+    "description": "A beautiful Open Graph image",
+    "brandName": "My Brand",
+    "startColor": "#667eea",
+    "endColor": "#764ba2",
+    "gridType": "dots"
+  }
+}
+```
+
+**Error Response:**
+
+```json
+{
+  "error": "Failed to generate image"
+}
+```
+
+**Status Codes:**
+
+| Status | Description             |
+| ------ | ----------------------- |
+| 200    | Success                 |
+| 400    | Missing required fields |
+| 500    | Server error            |
 
 ---
 

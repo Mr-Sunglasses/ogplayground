@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OGData } from "@/lib/og-parser";
@@ -20,7 +21,9 @@ interface SocialPreviewsProps {
   ogData: OGData;
 }
 
-export function SocialPreviews({ ogData }: SocialPreviewsProps) {
+export const SocialPreviews = memo(function SocialPreviews({
+  ogData,
+}: SocialPreviewsProps) {
   const hasImage = Boolean(ogData.image && ogData.image.startsWith("http"));
 
   return (
@@ -115,9 +118,9 @@ export function SocialPreviews({ ogData }: SocialPreviewsProps) {
       </CardContent>
     </Card>
   );
-}
+});
 
-function FacebookPreview({
+const FacebookPreview = memo(function FacebookPreview({
   ogData,
   hasImage,
 }: {
@@ -126,10 +129,8 @@ function FacebookPreview({
 }) {
   return (
     <div className="w-full max-w-none sm:max-w-[500px] mx-auto">
-      {/* Facebook Frame */}
       <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-800 p-2 sm:p-3">
         <div className="bg-white dark:bg-gray-900 rounded border shadow-sm overflow-hidden">
-          {/* Facebook Header */}
           <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center space-x-2 sm:space-x-3">
               <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
@@ -151,7 +152,6 @@ function FacebookPreview({
             </p>
           </div>
 
-          {/* Facebook Card */}
           <div className="border-b border-gray-200 dark:border-gray-700">
             {hasImage && (
               <div className="aspect-[1.91/1] bg-gray-200 dark:bg-gray-700 relative overflow-hidden">
@@ -163,7 +163,6 @@ function FacebookPreview({
                   alt={ogData.title || "Preview"}
                   fill
                   className="object-cover"
-                  unoptimized
                 />
               </div>
             )}
@@ -180,7 +179,6 @@ function FacebookPreview({
             </div>
           </div>
 
-          {/* Facebook Actions */}
           <div className="p-2 sm:p-3 bg-white dark:bg-gray-900">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-1 sm:space-x-4">
@@ -209,9 +207,9 @@ function FacebookPreview({
       </div>
     </div>
   );
-}
+});
 
-function TwitterPreview({
+const TwitterPreview = memo(function TwitterPreview({
   ogData,
   hasImage,
 }: {
@@ -224,10 +222,8 @@ function TwitterPreview({
 
   return (
     <div className="w-full max-w-none sm:max-w-[500px] mx-auto">
-      {/* Twitter Frame */}
       <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-black dark:bg-gray-900 p-2 sm:p-3">
         <div className="bg-black dark:bg-black rounded border-gray-800 dark:border-gray-700 border overflow-hidden">
-          {/* Twitter Header */}
           <div className="p-3 sm:p-4 border-b border-gray-800 dark:border-gray-700">
             <div className="flex items-center space-x-2 sm:space-x-3">
               <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0">
@@ -252,7 +248,6 @@ function TwitterPreview({
             </p>
           </div>
 
-          {/* Twitter Card */}
           <div className="border border-gray-800 dark:border-gray-700 rounded-lg m-3 overflow-hidden">
             {hasImage && (
               <div
@@ -266,7 +261,6 @@ function TwitterPreview({
                   alt={ogData.title || "Preview"}
                   fill
                   className="object-cover"
-                  unoptimized
                 />
               </div>
             )}
@@ -285,7 +279,6 @@ function TwitterPreview({
             </div>
           </div>
 
-          {/* Twitter Actions */}
           <div className="px-3 pb-3 bg-black">
             <div className="flex items-center space-x-2 sm:space-x-6">
               <button className="flex items-center space-x-1 text-gray-500 hover:text-blue-400 transition-colors px-2 py-1 rounded hover:bg-gray-900">
@@ -312,9 +305,9 @@ function TwitterPreview({
       </div>
     </div>
   );
-}
+});
 
-function LinkedInPreview({
+const LinkedInPreview = memo(function LinkedInPreview({
   ogData,
   hasImage,
 }: {
@@ -323,10 +316,8 @@ function LinkedInPreview({
 }) {
   return (
     <div className="w-full max-w-none sm:max-w-[500px] mx-auto">
-      {/* LinkedIn Frame */}
       <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-blue-50 dark:bg-blue-950 p-2 sm:p-3">
         <div className="bg-white dark:bg-gray-900 rounded border shadow-sm overflow-hidden">
-          {/* LinkedIn Header */}
           <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center space-x-2 sm:space-x-3">
               <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-700 rounded flex items-center justify-center flex-shrink-0">
@@ -339,7 +330,7 @@ function LinkedInPreview({
                   Your Name
                 </p>
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                  Software Engineer at Company • 2h
+                  Software Engineer at Company · 2h
                 </p>
               </div>
             </div>
@@ -348,7 +339,6 @@ function LinkedInPreview({
             </p>
           </div>
 
-          {/* LinkedIn Card */}
           <div className="border-t border-gray-200 dark:border-gray-700">
             {hasImage && (
               <div className="aspect-[2/1] bg-gray-200 dark:bg-gray-700 relative">
@@ -360,7 +350,6 @@ function LinkedInPreview({
                   alt={ogData.title || "Preview"}
                   fill
                   className="object-cover"
-                  unoptimized
                 />
               </div>
             )}
@@ -377,7 +366,6 @@ function LinkedInPreview({
             </div>
           </div>
 
-          {/* LinkedIn Actions */}
           <div className="px-3 sm:px-4 py-2 sm:py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
             <div className="flex items-center space-x-1 sm:space-x-3">
               <button className="flex items-center space-x-1 text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors px-2 py-1 rounded hover:bg-white dark:hover:bg-gray-700">
@@ -410,9 +398,9 @@ function LinkedInPreview({
       </div>
     </div>
   );
-}
+});
 
-function DiscordPreview({
+const DiscordPreview = memo(function DiscordPreview({
   ogData,
   hasImage,
 }: {
@@ -421,10 +409,8 @@ function DiscordPreview({
 }) {
   return (
     <div className="w-full max-w-none sm:max-w-[500px] mx-auto">
-      {/* Discord Frame */}
       <div className="border-2 border-gray-600 dark:border-gray-500 rounded-lg overflow-hidden bg-gray-700 dark:bg-gray-800 p-2 sm:p-3">
         <div className="bg-gray-800 dark:bg-gray-900 rounded border border-gray-600 overflow-hidden">
-          {/* Discord Message */}
           <div className="p-3 sm:p-4">
             <div className="flex items-start space-x-2 sm:space-x-3">
               <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
@@ -445,7 +431,6 @@ function DiscordPreview({
                   Check this out! 🎮
                 </p>
 
-                {/* Discord Embed */}
                 <div className="mt-3 bg-gray-750 border-l-4 border-blue-500 rounded-r p-3 max-w-full sm:max-w-[400px]">
                   <div className="flex flex-col sm:flex-row gap-3">
                     <div className="flex-1 min-w-0">
@@ -470,7 +455,6 @@ function DiscordPreview({
                           alt={ogData.title || "Preview"}
                           fill
                           className="object-cover"
-                          unoptimized
                         />
                       </div>
                     )}
@@ -483,4 +467,4 @@ function DiscordPreview({
       </div>
     </div>
   );
-}
+});
