@@ -20,6 +20,26 @@ jobs:
           node-version: 20
           cache: npm
 
+      # npm on macOS writes version-less placeholder entries for optional
+      # platform binaries (e.g. @rollup/rollup-win32-arm64-msvc) that cause
+      # `npm ci` to throw "Invalid Version:" on Linux runners. Remove those
+      # entries before installing — they are safe to skip on Linux.
+      - name: Patch lock file for Linux CI
+        run: |
+          node -e "
+            const fs = require('fs');
+            const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+            let count = 0;
+            for (const [key, pkg] of Object.entries(lock.packages)) {
+              if (pkg.optional && !pkg.version) {
+                delete lock.packages[key];
+                count++;
+              }
+            }
+            fs.writeFileSync('package-lock.json', JSON.stringify(lock, null, 2));
+            if (count) console.log('Removed ' + count + ' version-less optional platform entries.');
+          "
+
       - name: Install dependencies
         run: npm ci
 
