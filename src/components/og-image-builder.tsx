@@ -8,11 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ImageIcon, Download, RefreshCw, Palette } from "lucide-react";
+import { ImageIcon, Download, RefreshCw, Palette, Link2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface OGImageBuilderProps {
   onImageGenerated?: (imageUrl: string) => void;
+  onApplyToTags?: (imageUrl: string) => void;
 }
 
 interface ImageSettings {
@@ -59,7 +60,10 @@ const gridTypes = [
   { name: "Diagonal", value: "diagonal" },
 ];
 
-export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
+export function OGImageBuilder({
+  onImageGenerated,
+  onApplyToTags,
+}: OGImageBuilderProps) {
   const [settings, setSettings] = useState<ImageSettings>({
     visualIdentity: null,
     heroImage: null,
@@ -79,39 +83,42 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
   const visualIdentityRef = useRef<HTMLInputElement>(null);
   const heroImageRef = useRef<HTMLInputElement>(null);
 
-  const handleFileUpload = (type: 'visualIdentity' | 'heroImage', file: File | null) => {
-    setSettings(prev => ({
+  const handleFileUpload = (
+    type: "visualIdentity" | "heroImage",
+    file: File | null,
+  ) => {
+    setSettings((prev) => ({
       ...prev,
-      [type]: file
+      [type]: file,
     }));
   };
 
   const handleInputChange = (field: string, value: string) => {
-    if (field.includes('.')) {
-      const [parent, child] = field.split('.');
-      if (parent === 'backgroundGradient') {
-        setSettings(prev => ({
+    if (field.includes(".")) {
+      const [parent, child] = field.split(".");
+      if (parent === "backgroundGradient") {
+        setSettings((prev) => ({
           ...prev,
           backgroundGradient: {
             ...prev.backgroundGradient,
-            [child]: value
-          }
+            [child]: value,
+          },
         }));
       }
     } else {
-      setSettings(prev => ({ ...prev, [field]: value }));
+      setSettings((prev) => ({ ...prev, [field]: value }));
     }
   };
 
-  const applyGradientPreset = (preset: typeof gradientPresets[0]) => {
-    setSettings(prev => ({
+  const applyGradientPreset = (preset: (typeof gradientPresets)[0]) => {
+    setSettings((prev) => ({
       ...prev,
       backgroundGradient: {
         ...prev.backgroundGradient,
         startColor: preset.start,
         endColor: preset.end,
         preset: preset.name,
-      }
+      },
     }));
   };
 
@@ -122,26 +129,37 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
     }
 
     setIsGenerating(true);
-    
+
     try {
       // Create canvas for image generation
-      const canvas = document.createElement('canvas');
+      const canvas = document.createElement("canvas");
       canvas.width = 1200;
       canvas.height = 630;
-      const ctx = canvas.getContext('2d');
-      
+      const ctx = canvas.getContext("2d");
+
       if (!ctx) {
-        throw new Error('Canvas context not available');
+        throw new Error("Canvas context not available");
       }
 
       // Helper function to draw rounded rectangle (for compatibility)
-      const drawRoundedRect = (x: number, y: number, width: number, height: number, radius: number) => {
+      const drawRoundedRect = (
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        radius: number,
+      ) => {
         ctx.beginPath();
         ctx.moveTo(x + radius, y);
         ctx.lineTo(x + width - radius, y);
         ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
         ctx.lineTo(x + width, y + height - radius);
-        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+        ctx.quadraticCurveTo(
+          x + width,
+          y + height,
+          x + width - radius,
+          y + height,
+        );
         ctx.lineTo(x + radius, y + height);
         ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
         ctx.lineTo(x, y + radius);
@@ -150,15 +168,20 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
       };
 
       // Create gradient background
-      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      const gradient = ctx.createLinearGradient(
+        0,
+        0,
+        canvas.width,
+        canvas.height,
+      );
       gradient.addColorStop(0, settings.backgroundGradient.startColor);
       gradient.addColorStop(1, settings.backgroundGradient.endColor);
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
+
       // Add grid pattern if selected
-      if (settings.backgroundGradient.gridType === 'dots') {
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+      if (settings.backgroundGradient.gridType === "dots") {
+        ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
         for (let x = 20; x < canvas.width; x += 40) {
           for (let y = 20; y < canvas.height; y += 40) {
             ctx.beginPath();
@@ -166,8 +189,8 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
             ctx.fill();
           }
         }
-      } else if (settings.backgroundGradient.gridType === 'grid') {
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      } else if (settings.backgroundGradient.gridType === "grid") {
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
         ctx.lineWidth = 1;
         for (let x = 0; x < canvas.width; x += 40) {
           ctx.beginPath();
@@ -181,8 +204,8 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
           ctx.lineTo(canvas.width, y);
           ctx.stroke();
         }
-      } else if (settings.backgroundGradient.gridType === 'diagonal') {
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      } else if (settings.backgroundGradient.gridType === "diagonal") {
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
         ctx.lineWidth = 1;
         for (let i = -canvas.height; i < canvas.width; i += 40) {
           ctx.beginPath();
@@ -191,10 +214,10 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
           ctx.stroke();
         }
       }
-      
+
       // Process and draw uploaded images first
       const loadedImages: { [key: string]: HTMLImageElement } = {};
-      
+
       // Load visual identity image
       if (settings.visualIdentity) {
         const visualIdentityImg = new Image();
@@ -207,7 +230,7 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
         loadedImages.visualIdentity = visualIdentityImg;
         URL.revokeObjectURL(visualIdentityUrl);
       }
-      
+
       // Load hero image
       if (settings.heroImage) {
         const heroImg = new Image();
@@ -220,206 +243,253 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
         loadedImages.heroImage = heroImg;
         URL.revokeObjectURL(heroUrl);
       }
-      
+
       // Add visual identity/logo in top left (48x48px with 64px padding)
       if (loadedImages.visualIdentity) {
         ctx.save();
         // Add subtle backdrop for logo
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
         ctx.beginPath();
         ctx.arc(88, 88, 28, 0, 2 * Math.PI);
         ctx.fill();
-        
+
         drawRoundedRect(64, 64, 48, 48, 8);
         ctx.clip();
         ctx.drawImage(loadedImages.visualIdentity, 64, 64, 48, 48);
         ctx.restore();
       }
-      
+
       // Add brand name next to logo in top left (text-3xl, 12px gap from 48px logo, vertically centered)
       if (settings.brandName) {
         ctx.save();
         // Add text shadow for depth
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-        ctx.font = 'bold 30px "Geist Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle'; // Center text vertically
+        ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+        ctx.font =
+          'bold 30px "Geist Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle"; // Center text vertically
         const brandX = loadedImages.visualIdentity ? 124 : 64; // 64 + 48 + 12 = 124px
         const brandY = 88; // Vertically centered with 48px logo (64 + 24 = 88)
         ctx.fillText(settings.brandName, brandX + 1, brandY + 1);
-        
+
         // Add main text - text-gray-800 color
-        ctx.fillStyle = '#1f2937'; // text-gray-800
+        ctx.fillStyle = "#1f2937"; // text-gray-800
         ctx.fillText(settings.brandName, brandX, brandY);
         ctx.restore();
       }
-      
+
       // Add hero image in right half, centered vertically (450px width, auto height)
       if (loadedImages.heroImage) {
         ctx.save();
-        
+
         // Calculate dimensions maintaining aspect ratio
         const heroWidth = 450;
-        const aspectRatio = loadedImages.heroImage.height / loadedImages.heroImage.width;
+        const aspectRatio =
+          loadedImages.heroImage.height / loadedImages.heroImage.width;
         const heroHeight = heroWidth * aspectRatio;
-        
+
         // Position in right half (600px), centered vertically
         const heroX = canvas.width - 64 - heroWidth; // Right aligned with 64px padding
         const heroY = (canvas.height - heroHeight) / 2; // Vertically centered
-        
+
         // Add subtle backdrop for hero image
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-        drawRoundedRect(heroX - 10, heroY - 10, heroWidth + 20, heroHeight + 20, 16);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+        drawRoundedRect(
+          heroX - 10,
+          heroY - 10,
+          heroWidth + 20,
+          heroHeight + 20,
+          16,
+        );
         ctx.fill();
-        
+
         // Draw hero image with rounded corners
         drawRoundedRect(heroX, heroY, heroWidth, heroHeight, 12);
         ctx.clip();
-        ctx.drawImage(loadedImages.heroImage, heroX, heroY, heroWidth, heroHeight);
+        ctx.drawImage(
+          loadedImages.heroImage,
+          heroX,
+          heroY,
+          heroWidth,
+          heroHeight,
+        );
         ctx.restore();
       }
-      
+
       // Add title in lower-left area (text-5xl, leading-tight)
       ctx.save();
-      ctx.font = 'bold 48px "Geist Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      ctx.textAlign = 'left';
-      
+      ctx.font =
+        'bold 48px "Geist Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.textAlign = "left";
+
       const titleX = 64; // Left aligned with padding
       const titleStartY = 280; // Moved up to prevent overlap
       const titleMaxWidth = 500; // Left half width minus padding
       const lineHeight = 58; // leading-tight equivalent (1.25 * 48px = 60px, but slightly tighter)
-      
-      const words = settings.title.split(' ');
-      let line = '';
+
+      const words = settings.title.split(" ");
+      let line = "";
       const titleLines: string[] = [];
-      
+
       for (let n = 0; n < words.length; n++) {
-        const testLine = line + words[n] + ' ';
+        const testLine = line + words[n] + " ";
         const metrics = ctx.measureText(testLine);
         const testWidth = metrics.width;
-        
+
         if (testWidth > titleMaxWidth && n > 0) {
           titleLines.push(line.trim());
-          line = words[n] + ' ';
+          line = words[n] + " ";
         } else {
           line = testLine;
         }
       }
       titleLines.push(line.trim());
-      
+
       // Draw title lines with shadow
       let currentY = titleStartY;
       titleLines.forEach((line) => {
         // Text shadow
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
         ctx.fillText(line, titleX + 2, currentY + 2);
-        
+
         // Main text - text-gray-800 color
-        ctx.fillStyle = '#1f2937'; // text-gray-800
+        ctx.fillStyle = "#1f2937"; // text-gray-800
         ctx.fillText(line, titleX, currentY);
         currentY += lineHeight;
       });
       ctx.restore();
-      
+
       // Add description in bottom-left area (text-2xl, 24px spacing from title)
       if (settings.description) {
         ctx.save();
-        ctx.font = '24px "Geist Mono", "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace';
-        ctx.textAlign = 'left';
-        
+        ctx.font =
+          '24px "Geist Mono", "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace';
+        ctx.textAlign = "left";
+
         // Position in bottom-left with proper spacing from title
         const descriptionX = 64; // Left aligned with padding
         const descriptionMaxWidth = 500; // Left half width minus padding
         const descriptionLineHeight = 32; // Line height for 24px font
         const descriptionStartY = canvas.height - 130; // Adjusted for 120-char limit (3 lines max)
-        
+
         // With 120 character limit, description should fit in 1-3 lines max
         // Break description into lines
-        const words = settings.description.split(' ');
-        let line = '';
+        const words = settings.description.split(" ");
+        let line = "";
         let lines: string[] = [];
-        
+
         for (let n = 0; n < words.length; n++) {
-          const testLine = line + words[n] + ' ';
+          const testLine = line + words[n] + " ";
           const metrics = ctx.measureText(testLine);
           const testWidth = metrics.width;
-          
+
           if (testWidth > descriptionMaxWidth && n > 0) {
             lines.push(line.trim());
-            line = words[n] + ' ';
+            line = words[n] + " ";
           } else {
             line = testLine;
           }
         }
         lines.push(line.trim());
-        
+
         // With 120 chars, should not exceed 3 lines, but safety check
         if (lines.length > 3) {
           lines = lines.slice(0, 3);
           // Add ellipsis to the last line if truncated
           const lastLine = lines[2];
-          const ellipsis = '...';
+          const ellipsis = "...";
           const ellipsisWidth = ctx.measureText(ellipsis).width;
           const availableWidth = descriptionMaxWidth - ellipsisWidth;
-          
+
           // Trim last line to fit with ellipsis
           let trimmedLine = lastLine;
-          while (ctx.measureText(trimmedLine).width > availableWidth && trimmedLine.length > 0) {
+          while (
+            ctx.measureText(trimmedLine).width > availableWidth &&
+            trimmedLine.length > 0
+          ) {
             trimmedLine = trimmedLine.slice(0, -1);
           }
           lines[2] = trimmedLine + ellipsis;
         }
-        
+
         // Draw description lines
         let currentY = descriptionStartY;
         lines.forEach((line) => {
           // Text shadow for description
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+          ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
           ctx.fillText(line, descriptionX + 1, currentY + 1);
-          
+
           // Main description text - text-gray-600 color
-          ctx.fillStyle = '#4b5563'; // text-gray-600
+          ctx.fillStyle = "#4b5563"; // text-gray-600
           ctx.fillText(line, descriptionX, currentY);
           currentY += descriptionLineHeight;
         });
-        
+
         ctx.restore();
       }
-      
+
       // Add decorative elements
-      const decorGradient1 = ctx.createRadialGradient(canvas.width - 90, 90, 0, canvas.width - 90, 90, 50);
-      decorGradient1.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
-      decorGradient1.addColorStop(1, 'transparent');
+      const decorGradient1 = ctx.createRadialGradient(
+        canvas.width - 90,
+        90,
+        0,
+        canvas.width - 90,
+        90,
+        50,
+      );
+      decorGradient1.addColorStop(0, "rgba(255, 255, 255, 0.2)");
+      decorGradient1.addColorStop(1, "transparent");
       ctx.fillStyle = decorGradient1;
       ctx.beginPath();
       ctx.arc(canvas.width - 90, 90, 50, 0, 2 * Math.PI);
       ctx.fill();
-      
-      const decorGradient2 = ctx.createRadialGradient(90, canvas.height - 90, 0, 90, canvas.height - 90, 30);
-      decorGradient2.addColorStop(0, 'rgba(255, 255, 255, 0.15)');
-      decorGradient2.addColorStop(1, 'transparent');
+
+      const decorGradient2 = ctx.createRadialGradient(
+        90,
+        canvas.height - 90,
+        0,
+        90,
+        canvas.height - 90,
+        30,
+      );
+      decorGradient2.addColorStop(0, "rgba(255, 255, 255, 0.15)");
+      decorGradient2.addColorStop(1, "transparent");
       ctx.fillStyle = decorGradient2;
       ctx.beginPath();
       ctx.arc(90, canvas.height - 90, 30, 0, 2 * Math.PI);
       ctx.fill();
-      
-      const imageUrl = canvas.toDataURL('image/png', 0.9);
+
+      const imageUrl = canvas.toDataURL("image/png", 0.9);
       setGeneratedImageUrl(imageUrl);
       onImageGenerated?.(imageUrl);
       toast.success("OG image generated successfully!");
-      
     } catch (error) {
-      console.error('Error generating image:', error);
+      console.error("Error generating image:", error);
       toast.error("Failed to generate image. Please try again.");
     } finally {
       setIsGenerating(false);
     }
   };
 
+  const applyHostedImage = () => {
+    if (!settings.title.trim()) {
+      toast.error("Title is required");
+      return;
+    }
+    if (!onApplyToTags) return;
+    const params = new URLSearchParams({ title: settings.title });
+    if (settings.description) params.set("subtitle", settings.description);
+    if (settings.brandName) params.set("brand", settings.brandName);
+    if (settings.backgroundGradient.gridType !== "none") {
+      params.set("grid", settings.backgroundGradient.gridType);
+    }
+    onApplyToTags(`${window.location.origin}/api/og?${params.toString()}`);
+  };
+
   const downloadImage = () => {
     if (!generatedImageUrl) return;
-    
-    const link = document.createElement('a');
+
+    const link = document.createElement("a");
     link.href = generatedImageUrl;
     link.download = `og-image-${Date.now()}.png`;
     document.body.appendChild(link);
@@ -458,9 +528,15 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
       // Load default images
       const [visualIdentityFile, heroImageFile] = await Promise.all([
         // Default logo with OG Playground branding
-        urlToFile('https://raw.githubusercontent.com/Mr-Sunglasses/portfolio-kanishk/refs/heads/master/assets/image/2024-11-09%2001.57.06.jpg', 'default-logo.jpg'),
+        urlToFile(
+          "https://raw.githubusercontent.com/Mr-Sunglasses/portfolio-kanishk/refs/heads/master/assets/image/2024-11-09%2001.57.06.jpg",
+          "default-logo.jpg",
+        ),
         // Default hero image - beautiful gradient/tech background
-        urlToFile('https://raw.githubusercontent.com/Mr-Sunglasses/portfolio-kanishk/refs/heads/master/assets/image/20241019_BLP902.webp', 'default-hero.jpg')
+        urlToFile(
+          "https://raw.githubusercontent.com/Mr-Sunglasses/portfolio-kanishk/refs/heads/master/assets/image/20241019_BLP902.webp",
+          "default-hero.jpg",
+        ),
       ]);
 
       setSettings({
@@ -469,7 +545,8 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
         heroImage: heroImageFile,
         brandName: "ogplayground",
         title: "Generate beautiful OpenGraph Images with ogplayground ♡",
-        description: "-- because you've got better things to code than metatags.",
+        description:
+          "-- because you've got better things to code than metatags.",
         backgroundGradient: {
           startColor: "#ff9a8b",
           endColor: "#a8edea",
@@ -478,13 +555,14 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
         },
       });
     } catch (error) {
-      console.error('Error loading default images:', error);
+      console.error("Error loading default images:", error);
       // Fallback to just text content if image loading fails
       setSettings({
         ...settings,
         brandName: "ogplayground",
         title: "Generate beautiful OpenGraph Images with ogplayground ♡",
-        description: "-- because you've got better things to code than metatags.",
+        description:
+          "-- because you've got better things to code than metatags.",
         backgroundGradient: {
           startColor: "#ff9a8b",
           endColor: "#a8edea",
@@ -496,10 +574,10 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
   };
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="gap-0 py-0 shadow-none">
+      <CardHeader className="px-0 pt-0">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center space-x-2">
+          <CardTitle className="flex items-center space-x-2 text-base">
             <ImageIcon className="h-5 w-5" />
             <span>OG Image Builder</span>
           </CardTitle>
@@ -513,11 +591,12 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
           </div>
         </div>
         <p className="text-sm text-muted-foreground">
-          Create beautiful OG images with custom layouts and branding
+          Design a card, download a PNG, or insert a hosted /api/og URL into
+          your tags
         </p>
       </CardHeader>
 
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 px-0 pb-0">
         <Tabs defaultValue="content" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="content">Content</TabsTrigger>
@@ -545,11 +624,15 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Description</label>
+              <label className="text-sm font-medium mb-2 block">
+                Description
+              </label>
               <Textarea
                 placeholder="Brief description of your content"
                 value={settings.description}
-                onChange={(e) => handleInputChange("description", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("description", e.target.value)
+                }
                 maxLength={120}
                 rows={3}
               />
@@ -559,7 +642,9 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Brand Name</label>
+              <label className="text-sm font-medium mb-2 block">
+                Brand Name
+              </label>
               <Input
                 placeholder="Your brand or company name"
                 value={settings.brandName}
@@ -572,12 +657,19 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium mb-2 block">Visual Identity</label>
+                <label className="text-sm font-medium mb-2 block">
+                  Visual Identity
+                </label>
                 <input
                   ref={visualIdentityRef}
                   type="file"
                   accept="image/*"
-                  onChange={(e) => handleFileUpload('visualIdentity', e.target.files?.[0] || null)}
+                  onChange={(e) =>
+                    handleFileUpload(
+                      "visualIdentity",
+                      e.target.files?.[0] || null,
+                    )
+                  }
                   className="w-full p-2 border border-input bg-background rounded-md text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
@@ -586,12 +678,16 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Hero Image</label>
+                <label className="text-sm font-medium mb-2 block">
+                  Hero Image
+                </label>
                 <input
                   ref={heroImageRef}
                   type="file"
                   accept="image/*"
-                  onChange={(e) => handleFileUpload('heroImage', e.target.files?.[0] || null)}
+                  onChange={(e) =>
+                    handleFileUpload("heroImage", e.target.files?.[0] || null)
+                  }
                   className="w-full p-2 border border-input bg-background rounded-md text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
@@ -607,37 +703,61 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
                 <Palette className="h-4 w-4" />
                 <span>Background Gradient</span>
               </label>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Start Color</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">
+                    Start Color
+                  </label>
                   <div className="flex space-x-2">
                     <input
                       type="color"
                       value={settings.backgroundGradient.startColor}
-                      onChange={(e) => handleInputChange("backgroundGradient.startColor", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "backgroundGradient.startColor",
+                          e.target.value,
+                        )
+                      }
                       className="w-12 h-8 rounded border border-input cursor-pointer"
                     />
                     <Input
                       value={settings.backgroundGradient.startColor}
-                      onChange={(e) => handleInputChange("backgroundGradient.startColor", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "backgroundGradient.startColor",
+                          e.target.value,
+                        )
+                      }
                       placeholder="#667eea"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">End Color</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">
+                    End Color
+                  </label>
                   <div className="flex space-x-2">
                     <input
                       type="color"
                       value={settings.backgroundGradient.endColor}
-                      onChange={(e) => handleInputChange("backgroundGradient.endColor", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "backgroundGradient.endColor",
+                          e.target.value,
+                        )
+                      }
                       className="w-12 h-8 rounded border border-input cursor-pointer"
                     />
                     <Input
                       value={settings.backgroundGradient.endColor}
-                      onChange={(e) => handleInputChange("backgroundGradient.endColor", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "backgroundGradient.endColor",
+                          e.target.value,
+                        )
+                      }
                       placeholder="#764ba2"
                     />
                   </div>
@@ -645,7 +765,9 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
               </div>
 
               <div>
-                <label className="text-xs text-muted-foreground mb-2 block">Preset Gradients</label>
+                <label className="text-xs text-muted-foreground mb-2 block">
+                  Preset Gradients
+                </label>
                 <div className="grid grid-cols-4 gap-2">
                   {gradientPresets.map((preset) => (
                     <button
@@ -659,7 +781,7 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
                       style={{
                         background: `linear-gradient(135deg, ${preset.start}, ${preset.end})`,
                         color: "white",
-                        textShadow: "0 1px 2px rgba(0,0,0,0.5)"
+                        textShadow: "0 1px 2px rgba(0,0,0,0.5)",
                       }}
                     >
                       {preset.name}
@@ -669,12 +791,19 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
               </div>
 
               <div>
-                <label className="text-xs text-muted-foreground mb-2 block">Grid Pattern</label>
+                <label className="text-xs text-muted-foreground mb-2 block">
+                  Grid Pattern
+                </label>
                 <div className="grid grid-cols-4 gap-2">
                   {gridTypes.map((grid) => (
                     <button
                       key={grid.value}
-                      onClick={() => handleInputChange("backgroundGradient.gridType", grid.value)}
+                      onClick={() =>
+                        handleInputChange(
+                          "backgroundGradient.gridType",
+                          grid.value,
+                        )
+                      }
                       className={`p-2 rounded text-xs font-medium border transition-all ${
                         settings.backgroundGradient.gridType === grid.value
                           ? "bg-primary text-primary-foreground border-primary"
@@ -690,9 +819,9 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
           </TabsContent>
 
           <TabsContent value="preview" className="space-y-4 mt-4">
-            <div className="flex space-x-2">
-              <Button 
-                onClick={generateImage} 
+            <div className="flex flex-wrap gap-2">
+              <Button
+                onClick={generateImage}
                 disabled={isGenerating || !settings.title.trim()}
                 className="flex-1"
               >
@@ -704,22 +833,33 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
                 ) : (
                   <>
                     <ImageIcon className="h-4 w-4 mr-2" />
-                    Generate OG Image
+                    Generate PNG
                   </>
                 )}
               </Button>
-              
               {generatedImageUrl && (
                 <Button onClick={downloadImage} variant="outline">
                   <Download className="h-4 w-4 mr-2" />
                   Download
                 </Button>
               )}
+              {onApplyToTags && (
+                <Button
+                  onClick={applyHostedImage}
+                  variant="outline"
+                  disabled={!settings.title.trim()}
+                >
+                  <Link2 className="h-4 w-4 mr-2" />
+                  Use in tags
+                </Button>
+              )}
             </div>
 
             {generatedImageUrl && (
               <div className="space-y-2">
-                <label className="text-sm font-medium block">Generated Image Preview</label>
+                <label className="text-sm font-medium block">
+                  Generated Image Preview
+                </label>
                 <div className="border rounded-lg p-4 bg-muted/50">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -738,7 +878,8 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
               <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
                 <ImageIcon className="h-12 w-12 mx-auto text-muted-foreground/50 mb-2" />
                 <p className="text-sm text-muted-foreground">
-                  Fill in the details and click &quot;Generate OG Image&quot; to see your preview
+                  Fill in the details and click &quot;Generate OG Image&quot; to
+                  see your preview
                 </p>
               </div>
             )}
@@ -747,4 +888,4 @@ export function OGImageBuilder({ onImageGenerated }: OGImageBuilderProps) {
       </CardContent>
     </Card>
   );
-} 
+}

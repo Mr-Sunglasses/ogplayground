@@ -1,5 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { parseOGTags, validateOGTags, generateOGTags } from "../og-parser";
+import {
+  parseOGTags,
+  validateOGTags,
+  generateOGTags,
+  scoreOGTags,
+  upsertMetaTag,
+  applySuggestedTags,
+  displayHost,
+} from "../og-parser";
 
 describe("parseOGTags", () => {
   it("parses basic og:title and og:description", () => {
@@ -96,7 +104,8 @@ describe("parseOGTags", () => {
   });
 
   it("returns empty object when input exceeds 50,000 characters", () => {
-    const huge = '<meta property="og:title" content="test" />' + "x".repeat(50_001);
+    const huge =
+      '<meta property="og:title" content="test" />' + "x".repeat(50_001);
     expect(parseOGTags(huge)).toEqual({});
   });
 
@@ -138,6 +147,11 @@ describe("parseOGTags", () => {
     `;
     const result = parseOGTags(html);
     expect(result.alternateLocale).toEqual(["fr_FR", "de_DE"]);
+  });
+
+  it("parses content attribute before property", () => {
+    const html = `<meta content="Reversed Title" property="og:title" />`;
+    expect(parseOGTags(html).title).toBe("Reversed Title");
   });
 });
 
@@ -289,5 +303,68 @@ describe("generateOGTags", () => {
 
   it("returns empty string for empty input", () => {
     expect(generateOGTags({})).toBe("");
+  });
+});
+
+describe("scoreOGTags", () => {
+  it("returns 100 for a complete tag set", () => {
+    const issues = validateOGTags({
+      title: "A good title that is long enough",
+      description: "Good description that is long enough for validation rules",
+      image: "https://example.com/img.jpg",
+      imageWidth: "1200",
+      imageHeight: "630",
+      url: "https://example.com",
+      type: "website",
+      twitterCard: "summary_large_image",
+    });
+    const { score, grade } = scoreOGTags(issues);
+    expect(score).toBe(100);
+    expect(grade).toBe("A+");
+  });
+
+  it("penalizes missing required fields", () => {
+    const { score } = scoreOGTags(validateOGTags({}));
+    expect(score).toBeLessThan(50);
+  });
+});
+
+describe("upsertMetaTag", () => {
+  it("replaces an existing tag", () => {
+    const html = `<meta property="og:title" content="Old" />`;
+    const next = upsertMetaTag(html, "og:title", "New");
+    expect(next).toContain('content="New"');
+    expect(next).not.toContain("Old");
+  });
+
+  it("appends a missing tag", () => {
+    const html = `<meta property="og:title" content="Title" />`;
+    const next = upsertMetaTag(html, "og:description", "Desc");
+    expect(next).toContain("og:title");
+    expect(next).toContain("og:description");
+    expect(next).toContain("Desc");
+  });
+});
+
+describe("applySuggestedTags", () => {
+  it("upserts every meta tag in the suggestion", () => {
+    const html = `<meta property="og:title" content="Old" />`;
+    const next = applySuggestedTags(
+      html,
+      `<meta property="og:title" content="New" />
+<meta property="og:image:width" content="1200" />`,
+    );
+    expect(parseOGTags(next).title).toBe("New");
+    expect(parseOGTags(next).imageWidth).toBe("1200");
+  });
+});
+
+describe("displayHost", () => {
+  it("strips protocol and www", () => {
+    expect(displayHost("https://www.example.com/path")).toBe("example.com");
+  });
+
+  it("falls back when missing", () => {
+    expect(displayHost()).toBe("example.com");
   });
 });

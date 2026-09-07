@@ -226,10 +226,9 @@ export async function POST(request: NextRequest) {
       const property = attr.attr("property") || attr.attr("name");
       const content = attr.attr("content");
       if (property && content !== undefined) {
-        // Escape attribute values so they are safe in HTML output.
-        // parseOGTags will decode entities when displaying.
+        const attr = property.startsWith("twitter:") ? "name" : "property";
         ogTagsList.push(
-          `<meta property="${escapeHtml(property)}" content="${escapeHtml(content)}" />`,
+          `<meta ${attr}="${escapeHtml(property)}" content="${escapeHtml(content)}" />`,
         );
       }
     });

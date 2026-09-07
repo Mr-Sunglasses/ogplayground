@@ -1,32 +1,63 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { generateOGTags } from "@/lib/og-parser";
+import { Switch } from "@/components/ui/switch";
+import { CharCount } from "@/components/char-count";
+import { generateOGTags, type OGData } from "@/lib/og-parser";
 import { Wand2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface OGGeneratorProps {
+  ogData: OGData;
   onGenerate: (html: string) => void;
 }
 
-export function OGGenerator({ onGenerate }: OGGeneratorProps) {
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    image: "",
-    url: "",
-    siteName: "",
-    type: "website",
-    twitterCard: "summary_large_image",
-  });
+const selectClass =
+  "h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]";
 
-  const handleInputChange = (field: string, value: string) => {
+function fromOg(ogData: OGData) {
+  return {
+    title: ogData.title ?? "",
+    description: ogData.description ?? "",
+    image: ogData.image ?? "",
+    url: ogData.url ?? "",
+    siteName: ogData.siteName ?? "",
+    type: ogData.type ?? "website",
+    twitterCard: ogData.twitterCard ?? "summary_large_image",
+  };
+}
+
+function tagsFromForm(data: ReturnType<typeof fromOg>) {
+  return generateOGTags({
+    ...data,
+    imageWidth: data.image ? "1200" : undefined,
+    imageHeight: data.image ? "630" : undefined,
+    twitterTitle: data.title,
+    twitterDescription: data.description,
+    twitterImage: data.image,
+  });
+}
+
+export function OGGenerator({ ogData, onGenerate }: OGGeneratorProps) {
+  const [formData, setFormData] = useState(() => fromOg(ogData));
+  const [live, setLive] = useState(true);
+  const dirty = useRef(false);
+
+  useEffect(() => {
+    if (dirty.current) return;
+    setFormData(fromOg(ogData));
+  }, [ogData]);
+
+  useEffect(() => {
+    if (!live || !dirty.current || !formData.title.trim()) return;
+    onGenerate(tagsFromForm(formData));
+  }, [formData, live, onGenerate]);
+
+  const update = (field: string, value: string) => {
+    dirty.current = true;
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -35,205 +66,159 @@ export function OGGenerator({ onGenerate }: OGGeneratorProps) {
       toast.error("Title is required");
       return;
     }
-
-    const ogTags = generateOGTags(formData);
-    onGenerate(ogTags);
-    toast.success("OG tags generated!");
-  };
-
-  const clearForm = () => {
-    setFormData({
-      title: "",
-      description: "",
-      image: "",
-      url: "",
-      siteName: "",
-      type: "website",
-      twitterCard: "summary_large_image",
-    });
-  };
-
-  const fillExample = () => {
-    setFormData({
-      title: "Amazing Product Launch - Revolutionary Technology",
-      description:
-        "Discover our groundbreaking new product that will transform the way you work. Built with cutting-edge technology and designed for the modern user.",
-      image:
-        "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=1200&h=630&fit=crop",
-      url: "https://yourcompany.com/product-launch",
-      siteName: "Your Company",
-      type: "website",
-      twitterCard: "summary_large_image",
-    });
+    dirty.current = true;
+    onGenerate(tagsFromForm(formData));
+    toast.success("Tags updated");
   };
 
   return (
-    <Card>
-      <CardHeader>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h3 className="text-sm font-semibold">Form generator</h3>
+          <p className="text-xs text-muted-foreground">
+            Fill the fields — previews update as you type
+          </p>
+        </div>
+        <label className="flex items-center gap-2 text-xs">
+          <Switch checked={live} onCheckedChange={setLive} />
+          Live
+        </label>
+      </div>
+
+      <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center space-x-2">
-            <Wand2 className="h-5 w-5" />
-            <span>OG Generator</span>
-          </CardTitle>
-          <div className="flex space-x-2">
-            <Button variant="outline" size="sm" onClick={fillExample}>
-              Example
-            </Button>
-            <Button variant="outline" size="sm" onClick={clearForm}>
-              Clear
-            </Button>
-          </div>
+          <label className="text-sm font-medium" htmlFor="og-title">
+            Title
+          </label>
+          <CharCount value={formData.title} min={30} max={60} />
         </div>
-        <p className="text-sm text-muted-foreground">
-          Fill in the form below to generate Open Graph meta tags
+        <Input
+          id="og-title"
+          placeholder="Your page title"
+          value={formData.title}
+          onChange={(e) => update("title", e.target.value)}
+        />
+      </div>
+
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium" htmlFor="og-description">
+            Description
+          </label>
+          <CharCount value={formData.description} min={50} max={160} />
+        </div>
+        <Textarea
+          id="og-description"
+          placeholder="A compelling description of your page"
+          value={formData.description}
+          onChange={(e) => update("description", e.target.value)}
+          rows={3}
+        />
+      </div>
+
+      <div className="space-y-1.5">
+        <label className="text-sm font-medium" htmlFor="og-image">
+          Image URL
+        </label>
+        <Input
+          id="og-image"
+          type="url"
+          placeholder="https://example.com/og.png"
+          value={formData.image}
+          onChange={(e) => update("image", e.target.value)}
+        />
+        <p className="text-xs text-muted-foreground">
+          1200×630, JPG/PNG/WebP, HTTPS
         </p>
-      </CardHeader>
+      </div>
 
-      <CardContent className="space-y-4">
-        {/* Basic OG Tags */}
-        <div className="space-y-4">
-          <div>
-            <label className="text-sm font-medium mb-1 block">
-              Title{" "}
-              <Badge variant="destructive" className="ml-1 text-xs">
-                Required
-              </Badge>
-            </label>
-            <Input
-              placeholder="Your page title"
-              value={formData.title}
-              onChange={(e) => handleInputChange("title", e.target.value)}
-              maxLength={60}
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              {formData.title.length}/60 characters (recommended: 40-60)
-            </p>
-          </div>
-
-          <div>
-            <label className="text-sm font-medium mb-1 block">
-              Description{" "}
-              <Badge variant="destructive" className="ml-1 text-xs">
-                Required
-              </Badge>
-            </label>
-            <Textarea
-              placeholder="A compelling description of your page content"
-              value={formData.description}
-              onChange={(e) => handleInputChange("description", e.target.value)}
-              maxLength={200}
-              rows={3}
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              {formData.description.length}/200 characters (recommended:
-              120-160)
-            </p>
-          </div>
-
-          <div>
-            <label className="text-sm font-medium mb-1 block">
-              Image URL{" "}
-              <Badge variant="destructive" className="ml-1 text-xs">
-                Required
-              </Badge>
-            </label>
-            <Input
-              type="url"
-              placeholder="https://example.com/image.jpg"
-              value={formData.image}
-              onChange={(e) => handleInputChange("image", e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              Recommended: 1200x630px, JPG/PNG, &lt;5MB
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-1 block">URL</label>
-              <Input
-                type="url"
-                placeholder="https://example.com/page"
-                value={formData.url}
-                onChange={(e) => handleInputChange("url", e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium mb-1 block">
-                Site Name
-              </label>
-              <Input
-                placeholder="Your Site Name"
-                value={formData.siteName}
-                onChange={(e) => handleInputChange("siteName", e.target.value)}
-              />
-            </div>
-          </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium" htmlFor="og-url">
+            Canonical URL
+          </label>
+          <Input
+            id="og-url"
+            type="url"
+            placeholder="https://example.com/page"
+            value={formData.url}
+            onChange={(e) => update("url", e.target.value)}
+          />
         </div>
-
-        <Separator />
-
-        {/* Advanced Options */}
-        <div className="space-y-4">
-          <h4 className="text-sm font-medium">Advanced Options</h4>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-1 block">Type</label>
-              <select
-                className="w-full p-2 border border-input bg-background rounded-md text-sm"
-                value={formData.type}
-                onChange={(e) => handleInputChange("type", e.target.value)}
-              >
-                <option value="website">Website</option>
-                <option value="article">Article</option>
-                <option value="product">Product</option>
-                <option value="video">Video</option>
-                <option value="music">Music</option>
-                <option value="book">Book</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium mb-1 block">
-                Twitter Card
-              </label>
-              <select
-                className="w-full p-2 border border-input bg-background rounded-md text-sm"
-                value={formData.twitterCard}
-                onChange={(e) =>
-                  handleInputChange("twitterCard", e.target.value)
-                }
-              >
-                <option value="summary">Summary</option>
-                <option value="summary_large_image">Summary Large Image</option>
-                <option value="app">App</option>
-                <option value="player">Player</option>
-              </select>
-            </div>
-          </div>
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium" htmlFor="og-site">
+            Site name
+          </label>
+          <Input
+            id="og-site"
+            placeholder="Your site"
+            value={formData.siteName}
+            onChange={(e) => update("siteName", e.target.value)}
+          />
         </div>
+      </div>
 
-        <div className="flex space-x-2 pt-4">
-          <Button onClick={generateTags} className="flex-1">
-            <Wand2 className="h-4 w-4 mr-2" />
-            Generate OG Tags
-          </Button>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium" htmlFor="og-type">
+            Type
+          </label>
+          <select
+            id="og-type"
+            className={selectClass}
+            value={formData.type}
+            onChange={(e) => update("type", e.target.value)}
+          >
+            <option value="website">Website</option>
+            <option value="article">Article</option>
+            <option value="product">Product</option>
+            <option value="video.other">Video</option>
+            <option value="music.song">Music</option>
+            <option value="book">Book</option>
+          </select>
         </div>
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium" htmlFor="og-twitter">
+            Twitter card
+          </label>
+          <select
+            id="og-twitter"
+            className={selectClass}
+            value={formData.twitterCard}
+            onChange={(e) => update("twitterCard", e.target.value)}
+          >
+            <option value="summary">Summary</option>
+            <option value="summary_large_image">Summary large image</option>
+            <option value="app">App</option>
+            <option value="player">Player</option>
+          </select>
+        </div>
+      </div>
 
-        {/* Preview Info */}
-        <div className="bg-muted rounded-lg p-3 text-xs text-muted-foreground">
-          <p className="font-medium mb-1">💡 Tips for better engagement:</p>
-          <ul className="space-y-1 ml-4">
-            <li>• Use action-oriented titles that create curiosity</li>
-            <li>• Include your brand name in the title or description</li>
-            <li>• Choose high-quality, relevant images (1200x630px)</li>
-            <li>• Keep descriptions concise but descriptive</li>
-            <li>• Test your URLs with social media preview tools</li>
-          </ul>
-        </div>
-      </CardContent>
-    </Card>
+      <div className="flex gap-2">
+        <Button onClick={generateTags} className="flex-1">
+          <Wand2 className="h-4 w-4" />
+          Apply to editor
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => {
+            dirty.current = false;
+            setFormData({
+              title: "",
+              description: "",
+              image: "",
+              url: "",
+              siteName: "",
+              type: "website",
+              twitterCard: "summary_large_image",
+            });
+          }}
+        >
+          Clear
+        </Button>
+      </div>
+    </div>
   );
 }
