@@ -10,7 +10,6 @@ export interface OGData {
   type?: string;
   siteName?: string;
 
-  // Twitter Cards
   twitterCard?: string;
   twitterSite?: string;
   twitterCreator?: string;
@@ -18,20 +17,17 @@ export interface OGData {
   twitterDescription?: string;
   twitterImage?: string;
 
-  // Article specific
   articleAuthor?: string;
   articlePublishedTime?: string;
   articleModifiedTime?: string;
   articleSection?: string;
   articleTag?: string[];
 
-  // Product specific
   productPrice?: string;
   productCurrency?: string;
   productAvailability?: string;
   productCondition?: string;
 
-  // Additional meta
   locale?: string;
   alternateLocale?: string[];
 }
@@ -41,6 +37,11 @@ export interface ValidationIssue {
   property: string;
   message: string;
   suggestion?: string;
+}
+
+export interface OGScore {
+  score: number;
+  grade: string;
 }
 
 function decodeHtmlEntities(text: string): string {
@@ -56,111 +57,114 @@ function decodeHtmlEntities(text: string): string {
     .replace(/&amp;/g, "&");
 }
 
+function parseAttributes(tag: string): Record<string, string> {
+  const attrs: Record<string, string> = {};
+  const attrRe = /([:\w-]+)\s*=\s*(["'])([\s\S]*?)\2/g;
+  let match: RegExpExecArray | null;
+  while ((match = attrRe.exec(tag)) !== null) {
+    attrs[match[1].toLowerCase()] = match[3];
+  }
+  return attrs;
+}
+
+function assignProperty(ogData: OGData, property: string, content: string) {
+  switch (property) {
+    case "og:title":
+      ogData.title = content;
+      break;
+    case "og:description":
+      ogData.description = content;
+      break;
+    case "og:image":
+      ogData.image = content;
+      break;
+    case "og:image:width":
+      ogData.imageWidth = content;
+      break;
+    case "og:image:height":
+      ogData.imageHeight = content;
+      break;
+    case "og:url":
+      ogData.url = content;
+      break;
+    case "og:type":
+      ogData.type = content;
+      break;
+    case "og:site_name":
+      ogData.siteName = content;
+      break;
+    case "og:locale":
+      ogData.locale = content;
+      break;
+    case "og:locale:alternate":
+      if (!ogData.alternateLocale) ogData.alternateLocale = [];
+      ogData.alternateLocale.push(content);
+      break;
+    case "twitter:card":
+      ogData.twitterCard = content;
+      break;
+    case "twitter:site":
+      ogData.twitterSite = content;
+      break;
+    case "twitter:creator":
+      ogData.twitterCreator = content;
+      break;
+    case "twitter:title":
+      ogData.twitterTitle = content;
+      break;
+    case "twitter:description":
+      ogData.twitterDescription = content;
+      break;
+    case "twitter:image":
+      ogData.twitterImage = content;
+      break;
+    case "article:author":
+      ogData.articleAuthor = content;
+      break;
+    case "article:published_time":
+      ogData.articlePublishedTime = content;
+      break;
+    case "article:modified_time":
+      ogData.articleModifiedTime = content;
+      break;
+    case "article:section":
+      ogData.articleSection = content;
+      break;
+    case "article:tag":
+      if (!ogData.articleTag) ogData.articleTag = [];
+      ogData.articleTag.push(content);
+      break;
+    case "product:price:amount":
+      ogData.productPrice = content;
+      break;
+    case "product:price:currency":
+      ogData.productCurrency = content;
+      break;
+    case "product:availability":
+      ogData.productAvailability = content;
+      break;
+    case "product:condition":
+      ogData.productCondition = content;
+      break;
+  }
+}
+
 export function parseOGTags(html: string): OGData {
   const ogData: OGData = {};
 
   if (html.length > 50_000) return ogData;
 
-  // Parse meta tags using regex for SSR compatibility.
-  // Uses backreferences (\1 / \2) so an apostrophe inside double-quoted
-  // content (or vice-versa) does not prematurely end the match.
-  const metaRegex =
-    /<meta\s+(?:property|name)=(["'])([^"']+?)\1[^>]*content=(["'])([\s\S]*?)\3[^>]*>/gi;
+  const metaRegex = /<meta\b[^>]*>/gi;
   let match: RegExpExecArray | null;
 
   while ((match = metaRegex.exec(html)) !== null) {
-    const property = match[2];
-    const rawContent = match[4];
+    const attrs = parseAttributes(match[0]);
+    const property = attrs.property || attrs.name;
+    const rawContent = attrs.content;
     if (!property || rawContent === undefined) continue;
     const content = decodeHtmlEntities(rawContent);
     if (!content) continue;
-
-    // Open Graph tags
-    switch (property) {
-      case "og:title":
-        ogData.title = content;
-        break;
-      case "og:description":
-        ogData.description = content;
-        break;
-      case "og:image":
-        ogData.image = content;
-        break;
-      case "og:image:width":
-        ogData.imageWidth = content;
-        break;
-      case "og:image:height":
-        ogData.imageHeight = content;
-        break;
-      case "og:url":
-        ogData.url = content;
-        break;
-      case "og:type":
-        ogData.type = content;
-        break;
-      case "og:site_name":
-        ogData.siteName = content;
-        break;
-      case "og:locale":
-        ogData.locale = content;
-        break;
-      case "og:locale:alternate":
-        if (!ogData.alternateLocale) ogData.alternateLocale = [];
-        ogData.alternateLocale.push(content);
-        break;
-
-      // Twitter Cards
-      case "twitter:card":
-        ogData.twitterCard = content;
-        break;
-      case "twitter:site":
-        ogData.twitterSite = content;
-        break;
-      case "twitter:creator":
-        ogData.twitterCreator = content;
-        break;
-      case "twitter:title":
-        ogData.twitterTitle = content;
-        break;
-      case "twitter:description":
-        ogData.twitterDescription = content;
-        break;
-      case "twitter:image":
-        ogData.twitterImage = content;
-        break;
-
-      // Article specific
-      case "article:author":
-        ogData.articleAuthor = content;
-        break;
-      case "article:published_time":
-        ogData.articlePublishedTime = content;
-        break;
-      case "article:modified_time":
-        ogData.articleModifiedTime = content;
-        break;
-      case "article:section":
-        ogData.articleSection = content;
-        break;
-      case "article:tag":
-        if (!ogData.articleTag) ogData.articleTag = [];
-        ogData.articleTag.push(content);
-        break;
-
-      // Product specific
-      case "product:price:amount":
-        ogData.productPrice = content;
-        break;
-      case "product:price:currency":
-        ogData.productCurrency = content;
-        break;
-      case "product:availability":
-        ogData.productAvailability = content;
-        break;
-      case "product:condition":
-        ogData.productCondition = content;
-        break;
-    }
+    assignProperty(ogData, property, content);
   }
 
   return ogData;
@@ -169,33 +173,29 @@ export function parseOGTags(html: string): OGData {
 export function validateOGTags(ogData: OGData): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
 
-  // Required tags validation
   if (!ogData.title) {
     issues.push({
       type: "error",
       property: "og:title",
       message: "Title is required for proper social media sharing",
-      suggestion: 'Add <meta property="og:title" content="Your page title" />',
+      suggestion: '<meta property="og:title" content="Your page title" />',
     });
-  } else {
-    // Title length validation
-    if (ogData.title.length > 60) {
-      const shortenedTitle = ogData.title.substring(0, 55).trim() + "...";
-      issues.push({
-        type: "warning",
-        property: "og:title",
-        message: `Title is ${ogData.title.length} characters (recommended: 40-60)`,
-        suggestion: `<meta property="og:title" content="${escapeHtml(shortenedTitle)}" />`,
-      });
-    } else if (ogData.title.length < 30) {
-      issues.push({
-        type: "info",
-        property: "og:title",
-        message: `Title is ${ogData.title.length} characters (could be more descriptive)`,
-        suggestion:
-          "Consider expanding your title to be more descriptive while staying under 60 characters",
-      });
-    }
+  } else if (ogData.title.length > 60) {
+    const shortenedTitle = ogData.title.substring(0, 55).trim() + "...";
+    issues.push({
+      type: "warning",
+      property: "og:title",
+      message: `Title is ${ogData.title.length} characters (recommended: 40-60)`,
+      suggestion: `<meta property="og:title" content="${escapeHtml(shortenedTitle)}" />`,
+    });
+  } else if (ogData.title.length < 30) {
+    issues.push({
+      type: "info",
+      property: "og:title",
+      message: `Title is ${ogData.title.length} characters (could be more descriptive)`,
+      suggestion:
+        "Consider expanding your title to be more descriptive while staying under 60 characters",
+    });
   }
 
   if (!ogData.description) {
@@ -204,27 +204,24 @@ export function validateOGTags(ogData: OGData): ValidationIssue[] {
       property: "og:description",
       message: "Description is required for proper social media sharing",
       suggestion:
-        'Add <meta property="og:description" content="Your page description" />',
+        '<meta property="og:description" content="Your page description" />',
     });
-  } else {
-    // Description length validation
-    if (ogData.description.length > 200) {
-      const shortenedDesc = ogData.description.substring(0, 155).trim() + "...";
-      issues.push({
-        type: "warning",
-        property: "og:description",
-        message: `Description is ${ogData.description.length} characters (recommended: 120-160)`,
-        suggestion: `<meta property="og:description" content="${escapeHtml(shortenedDesc)}" />`,
-      });
-    } else if (ogData.description.length < 50) {
-      issues.push({
-        type: "info",
-        property: "og:description",
-        message: `Description is ${ogData.description.length} characters (could be more detailed)`,
-        suggestion:
-          "Consider expanding your description to be more informative while staying under 200 characters",
-      });
-    }
+  } else if (ogData.description.length > 200) {
+    const shortenedDesc = ogData.description.substring(0, 155).trim() + "...";
+    issues.push({
+      type: "warning",
+      property: "og:description",
+      message: `Description is ${ogData.description.length} characters (recommended: 120-160)`,
+      suggestion: `<meta property="og:description" content="${escapeHtml(shortenedDesc)}" />`,
+    });
+  } else if (ogData.description.length < 50) {
+    issues.push({
+      type: "info",
+      property: "og:description",
+      message: `Description is ${ogData.description.length} characters (could be more detailed)`,
+      suggestion:
+        "Consider expanding your description to be more informative while staying under 200 characters",
+    });
   }
 
   if (!ogData.image) {
@@ -233,20 +230,24 @@ export function validateOGTags(ogData: OGData): ValidationIssue[] {
       property: "og:image",
       message: "Image is required for rich social media previews",
       suggestion:
-        'Add <meta property="og:image" content="https://example.com/image.jpg" />',
+        '<meta property="og:image" content="https://example.com/image.jpg" />',
+    });
+  } else if (!ogData.image.startsWith("http")) {
+    issues.push({
+      type: "error",
+      property: "og:image",
+      message: "Image URL must be absolute (start with http/https)",
+      suggestion: `<meta property="og:image" content="https://example.com/og-image.jpg" />`,
     });
   } else {
-    // Image URL validation
-    if (!ogData.image.startsWith("http")) {
+    if (ogData.image.startsWith("http://")) {
       issues.push({
-        type: "error",
+        type: "warning",
         property: "og:image",
-        message: "Image URL must be absolute (start with http/https)",
-        suggestion: `<meta property="og:image" content="https://example.com/og-image.jpg" />`,
+        message: "HTTPS image URLs are recommended — many platforms block HTTP",
+        suggestion: `<meta property="og:image" content="${escapeHtml(ogData.image.replace(/^http:\/\//i, "https://"))}" />`,
       });
     }
-
-    // Image size recommendations
     if (!ogData.imageWidth || !ogData.imageHeight) {
       issues.push({
         type: "info",
@@ -264,7 +265,7 @@ export function validateOGTags(ogData: OGData): ValidationIssue[] {
       property: "og:url",
       message: "URL helps platforms identify canonical content",
       suggestion:
-        'Add <meta property="og:url" content="https://example.com/page" />',
+        '<meta property="og:url" content="https://example.com/page" />',
     });
   }
 
@@ -274,11 +275,10 @@ export function validateOGTags(ogData: OGData): ValidationIssue[] {
       property: "og:type",
       message: "Type helps platforms understand content context",
       suggestion:
-        'Add <meta property="og:type" content="website" /> (or article, product, etc.)',
+        '<meta property="og:type" content="website" /> (or article, product, etc.)',
     });
   }
 
-  // Twitter Cards validation
   if (
     ogData.twitterCard &&
     !["summary", "summary_large_image", "app", "player"].includes(
@@ -293,7 +293,6 @@ export function validateOGTags(ogData: OGData): ValidationIssue[] {
     });
   }
 
-  // Additional Twitter card recommendations
   if (!ogData.twitterCard && ogData.image) {
     issues.push({
       type: "info",
@@ -303,15 +302,13 @@ export function validateOGTags(ogData: OGData): ValidationIssue[] {
     });
   }
 
-  // Type-specific validation
   if (ogData.type === "article") {
     if (!ogData.articleAuthor) {
       issues.push({
         type: "info",
         property: "article:author",
         message: "Author information recommended for articles",
-        suggestion:
-          'Add <meta property="article:author" content="Author Name" />',
+        suggestion: '<meta property="article:author" content="Author Name" />',
       });
     }
 
@@ -321,12 +318,31 @@ export function validateOGTags(ogData: OGData): ValidationIssue[] {
         property: "article:published_time",
         message: "Published time recommended for articles",
         suggestion:
-          'Add <meta property="article:published_time" content="2024-01-01T00:00:00Z" />',
+          '<meta property="article:published_time" content="2024-01-01T00:00:00Z" />',
       });
     }
   }
 
   return issues;
+}
+
+export function scoreOGTags(issues: ValidationIssue[]): OGScore {
+  let score = 100;
+  for (const issue of issues) {
+    if (issue.type === "error") score -= 25;
+    else if (issue.type === "warning") score -= 10;
+    else score -= 3;
+  }
+  score = Math.max(0, Math.min(100, score));
+  const grade =
+    score >= 90
+      ? "A+"
+      : score >= 75
+        ? "B"
+        : score >= 50
+          ? "C"
+          : "Needs Improvement";
+  return { score, grade };
 }
 
 export function generateOGTags(data: Partial<OGData>): string {
@@ -350,6 +366,18 @@ export function generateOGTags(data: Partial<OGData>): string {
     );
   }
 
+  if (data.imageWidth) {
+    tags.push(
+      `<meta property="og:image:width" content="${escapeHtml(data.imageWidth)}" />`,
+    );
+  }
+
+  if (data.imageHeight) {
+    tags.push(
+      `<meta property="og:image:height" content="${escapeHtml(data.imageHeight)}" />`,
+    );
+  }
+
   if (data.url) {
     tags.push(`<meta property="og:url" content="${escapeHtml(data.url)}" />`);
   }
@@ -364,7 +392,6 @@ export function generateOGTags(data: Partial<OGData>): string {
     );
   }
 
-  // Twitter Cards
   if (data.twitterCard) {
     tags.push(
       `<meta name="twitter:card" content="${escapeHtml(data.twitterCard)}" />`,
@@ -392,3 +419,54 @@ export function generateOGTags(data: Partial<OGData>): string {
   return tags.join("\n");
 }
 
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+export function upsertMetaTag(
+  html: string,
+  property: string,
+  content: string,
+): string {
+  const isTwitter = property.startsWith("twitter:");
+  const attr = isTwitter ? "name" : "property";
+  const tag = `<meta ${attr}="${escapeHtml(property)}" content="${escapeHtml(content)}" />`;
+  const re = new RegExp(
+    `<meta\\b[^>]*(?:property|name)\\s*=\\s*["']${escapeRegex(property)}["'][^>]*>`,
+    "i",
+  );
+  if (re.test(html)) {
+    return html.replace(re, tag);
+  }
+  const trimmed = html.trimEnd();
+  return trimmed ? `${trimmed}\n${tag}` : tag;
+}
+
+export function applySuggestedTags(html: string, suggestion: string): string {
+  const metaRe = /<meta\b[^>]*>/gi;
+  let next = html;
+  let found = false;
+  let match: RegExpExecArray | null;
+  while ((match = metaRe.exec(suggestion)) !== null) {
+    const attrs = parseAttributes(match[0]);
+    const property = attrs.property || attrs.name;
+    if (!property || attrs.content === undefined) continue;
+    found = true;
+    next = upsertMetaTag(next, property, decodeHtmlEntities(attrs.content));
+  }
+  return found ? next : html;
+}
+
+export function displayHost(url?: string): string {
+  if (!url) return "example.com";
+  try {
+    const normalized = url.startsWith("http") ? url : `https://${url}`;
+    return new URL(normalized).hostname.replace(/^www\./, "");
+  } catch {
+    return url.replace(/^https?:\/\//, "").split("/")[0] || "example.com";
+  }
+}
+
+export function isHttpUrl(url?: string): boolean {
+  return Boolean(url && /^https?:\/\//i.test(url));
+}

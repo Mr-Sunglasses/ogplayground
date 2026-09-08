@@ -1,470 +1,311 @@
 "use client";
 
-import { memo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { OGData } from "@/lib/og-parser";
-import Image from "next/image";
-import {
-  Facebook,
-  Twitter,
-  Linkedin,
-  MessageCircle,
-  Heart,
-  Share,
-  MessageSquare,
-  ThumbsUp,
-  Send,
-} from "lucide-react";
+import { memo, useState } from "react";
+import { displayHost, isHttpUrl, type OGData } from "@/lib/og-parser";
+import { PreviewImage } from "@/components/preview-image";
 
 interface SocialPreviewsProps {
   ogData: OGData;
 }
 
+const PLATFORMS = [
+  { id: "facebook", label: "Facebook" },
+  { id: "x", label: "X" },
+  { id: "linkedin", label: "LinkedIn" },
+  { id: "discord", label: "Discord" },
+  { id: "slack", label: "Slack" },
+  { id: "whatsapp", label: "WhatsApp" },
+  { id: "telegram", label: "Telegram" },
+  { id: "google", label: "Google" },
+  { id: "bluesky", label: "Bluesky" },
+] as const;
+
+type PlatformId = (typeof PLATFORMS)[number]["id"];
+
+function fields(ogData: OGData) {
+  const host = displayHost(ogData.url);
+  return {
+    title: ogData.title || "Page title",
+    description:
+      ogData.description || "Add a description to see how it looks when shared.",
+    image: ogData.image,
+    host,
+    siteName: ogData.siteName || host,
+    twitterTitle: ogData.twitterTitle || ogData.title || "Page title",
+    twitterDescription:
+      ogData.twitterDescription ||
+      ogData.description ||
+      "Add a description to see how it looks when shared.",
+    twitterImage: ogData.twitterImage || ogData.image,
+    isLargeCard:
+      ogData.twitterCard === "summary_large_image" ||
+      (!ogData.twitterCard && isHttpUrl(ogData.image)),
+  };
+}
+
 export const SocialPreviews = memo(function SocialPreviews({
   ogData,
 }: SocialPreviewsProps) {
-  const hasImage = Boolean(ogData.image && ogData.image.startsWith("http"));
+  const [platform, setPlatform] = useState<PlatformId>("facebook");
+  const data = fields(ogData);
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader className="flex-shrink-0">
-        <CardTitle>Social Media Previews</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          See how your content will appear when shared on different platforms
+    <section className="flex h-full min-h-0 flex-col">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <select
+          aria-label="Preview platform"
+          value={platform}
+          onChange={(e) => setPlatform(e.target.value as PlatformId)}
+          className="h-7 rounded-[6px] border border-input bg-card px-2 text-[12px] outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        >
+          {PLATFORMS.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.label}
+            </option>
+          ))}
+        </select>
+        <span className="tabular-nums text-[11px] text-muted-foreground">
+          {(ogData.title || "").length}/60
+        </span>
+      </div>
+
+      <div className="flex min-h-0 flex-1 items-start justify-center overflow-y-auto pt-1">
+        {platform === "facebook" && <FacebookCard data={data} />}
+        {platform === "x" && <XCard data={data} />}
+        {platform === "linkedin" && <LinkedInCard data={data} />}
+        {platform === "discord" && <DiscordCard data={data} />}
+        {platform === "slack" && <SlackCard data={data} />}
+        {platform === "whatsapp" && <WhatsAppCard data={data} />}
+        {platform === "telegram" && <TelegramCard data={data} />}
+        {platform === "google" && <GoogleCard data={data} />}
+        {platform === "bluesky" && <BlueskyCard data={data} />}
+      </div>
+    </section>
+  );
+});
+
+type CardData = ReturnType<typeof fields>;
+
+function FacebookCard({ data }: { data: CardData }) {
+  return (
+    <article className="w-full max-w-[420px]">
+      <div className="overflow-hidden rounded-[8px] border border-neutral-200 bg-white">
+        <PreviewImage
+          src={data.image}
+          alt={data.title}
+          className="aspect-[1.91/1] w-full bg-neutral-100"
+        />
+        <div className="border-t border-neutral-200 bg-[#f0f2f5] px-3 py-2">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-neutral-500">
+            {data.host}
+          </p>
+          <h3 className="mt-0.5 line-clamp-2 text-[15px] font-semibold leading-snug text-neutral-900">
+            {data.title}
+          </h3>
+          <p className="mt-0.5 line-clamp-1 text-[12px] text-neutral-600">
+            {data.description}
+          </p>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function XCard({ data }: { data: CardData }) {
+  const image = data.twitterImage;
+  if (!data.isLargeCard) {
+    return (
+      <article className="w-full max-w-[420px]">
+        <div className="flex overflow-hidden rounded-[12px] border border-neutral-800 bg-black">
+          <PreviewImage
+            src={image}
+            alt={data.twitterTitle}
+            className="h-[96px] w-[96px] shrink-0 bg-neutral-900"
+          />
+          <div className="min-w-0 flex-1 px-3 py-2">
+            <h3 className="line-clamp-1 text-[14px] font-semibold text-white">
+              {data.twitterTitle}
+            </h3>
+            <p className="mt-0.5 line-clamp-2 text-[12px] text-neutral-400">
+              {data.twitterDescription}
+            </p>
+            <p className="mt-1 text-[12px] text-neutral-500">{data.host}</p>
+          </div>
+        </div>
+      </article>
+    );
+  }
+
+  return (
+    <article className="w-full max-w-[420px]">
+      <div className="overflow-hidden rounded-[12px] border border-neutral-800 bg-black">
+        <PreviewImage
+          src={image}
+          alt={data.twitterTitle}
+          className="aspect-[1.91/1] w-full bg-neutral-900"
+        />
+        <div className="px-3 py-2">
+          <h3 className="line-clamp-2 text-[14px] font-semibold text-white">
+            {data.twitterTitle}
+          </h3>
+          <p className="mt-0.5 line-clamp-2 text-[12px] text-neutral-400">
+            {data.twitterDescription}
+          </p>
+          <p className="mt-1 text-[12px] text-neutral-500">{data.host}</p>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function LinkedInCard({ data }: { data: CardData }) {
+  return (
+    <article className="w-full max-w-[420px]">
+      <div className="overflow-hidden rounded-[8px] border border-neutral-200 bg-white">
+        <PreviewImage
+          src={data.image}
+          alt={data.title}
+          className="aspect-[1.91/1] w-full bg-neutral-100"
+        />
+        <div className="px-3 py-2">
+          <h3 className="line-clamp-2 text-[14px] font-semibold text-neutral-900">
+            {data.title}
+          </h3>
+          <p className="mt-1 text-[12px] text-neutral-500">{data.host}</p>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function DiscordCard({ data }: { data: CardData }) {
+  return (
+    <article className="w-full max-w-[420px]">
+      <div className="rounded-[8px] bg-[#313338] p-2.5">
+        <div className="overflow-hidden rounded-[4px] border-l-[3px] border-[#5865F2] bg-[#2b2d31] p-2.5">
+          <p className="text-[12px] font-semibold text-[#00a8fc]">{data.siteName}</p>
+          <h3 className="mt-0.5 line-clamp-2 text-[14px] font-semibold text-[#00a8fc]">
+            {data.title}
+          </h3>
+          <p className="mt-1 line-clamp-2 text-[12px] text-[#dbdee1]">
+            {data.description}
+          </p>
+          <PreviewImage
+            src={data.image}
+            alt={data.title}
+            className="mt-2 aspect-[1.91/1] w-full rounded-[4px] bg-[#1e1f22]"
+          />
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function SlackCard({ data }: { data: CardData }) {
+  return (
+    <article className="w-full max-w-[420px]">
+      <div className="rounded-[8px] border border-neutral-200 bg-white p-2.5">
+        <div className="flex gap-2.5 border-l-[3px] border-neutral-300 pl-2.5">
+          <div className="min-w-0 flex-1">
+            <p className="text-[12px] font-semibold">{data.siteName}</p>
+            <h3 className="mt-0.5 line-clamp-2 text-[14px] font-semibold text-[#1264a3]">
+              {data.title}
+            </h3>
+            <p className="mt-1 line-clamp-2 text-[12px] text-neutral-600">
+              {data.description}
+            </p>
+          </div>
+          <PreviewImage
+            src={data.image}
+            alt={data.title}
+            className="h-16 w-16 shrink-0 rounded bg-neutral-100"
+          />
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function WhatsAppCard({ data }: { data: CardData }) {
+  return (
+    <article className="w-full max-w-[420px]">
+      <div className="overflow-hidden rounded-[8px] bg-[#d1f4cc] p-1">
+        <div className="overflow-hidden rounded-[6px] bg-white/80">
+          <PreviewImage
+            src={data.image}
+            alt={data.title}
+            className="aspect-[1.91/1] w-full bg-neutral-200"
+          />
+          <div className="px-2.5 py-2">
+            <h3 className="line-clamp-2 text-[13px] font-semibold">{data.title}</h3>
+            <p className="mt-0.5 line-clamp-2 text-[12px] text-neutral-600">
+              {data.description}
+            </p>
+            <p className="mt-1 text-[11px] text-neutral-500">{data.host}</p>
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function TelegramCard({ data }: { data: CardData }) {
+  return (
+    <article className="w-full max-w-[420px]">
+      <div className="overflow-hidden rounded-[8px] border-l-[3px] border-[#3390ec] bg-[#212121] p-2.5">
+        <p className="text-[12px] font-semibold text-[#6ab3f3]">{data.host}</p>
+        <h3 className="mt-0.5 line-clamp-2 text-[14px] font-semibold text-[#6ab3f3]">
+          {data.title}
+        </h3>
+        <p className="mt-1 line-clamp-2 text-[12px] text-[#e4e4e4]">
+          {data.description}
         </p>
-      </CardHeader>
-      <CardContent className="flex-1 p-4 sm:p-6 overflow-hidden">
-        <Tabs defaultValue="facebook" className="w-full h-full flex flex-col">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1 mb-4 flex-shrink-0">
-            <TabsTrigger
-              value="facebook"
-              className="flex items-center gap-1 text-xs sm:text-sm"
-            >
-              <Facebook className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden xs:inline sm:inline">Facebook</span>
-              <span className="xs:hidden sm:hidden">FB</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="twitter"
-              className="flex items-center gap-1 text-xs sm:text-sm"
-            >
-              <Twitter className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden xs:inline sm:inline">Twitter</span>
-              <span className="xs:hidden sm:hidden">TW</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="linkedin"
-              className="flex items-center gap-1 text-xs sm:text-sm"
-            >
-              <Linkedin className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden xs:inline sm:inline">LinkedIn</span>
-              <span className="xs:hidden sm:hidden">LI</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="discord"
-              className="flex items-center gap-1 text-xs sm:text-sm"
-            >
-              <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden xs:inline sm:inline">Discord</span>
-              <span className="xs:hidden sm:hidden">DC</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent
-            value="facebook"
-            className="mt-0 focus-visible:outline-none flex-1 overflow-hidden"
-          >
-            <div className="h-full overflow-y-auto overflow-x-hidden px-2">
-              <div className="min-h-full flex items-center justify-center py-4">
-                <FacebookPreview ogData={ogData} hasImage={hasImage} />
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent
-            value="twitter"
-            className="mt-0 focus-visible:outline-none flex-1 overflow-hidden"
-          >
-            <div className="h-full overflow-y-auto overflow-x-hidden px-2">
-              <div className="min-h-full flex items-center justify-center py-4">
-                <TwitterPreview ogData={ogData} hasImage={hasImage} />
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent
-            value="linkedin"
-            className="mt-0 focus-visible:outline-none flex-1 overflow-hidden"
-          >
-            <div className="h-full overflow-y-auto overflow-x-hidden px-2">
-              <div className="min-h-full flex items-center justify-center py-4">
-                <LinkedInPreview ogData={ogData} hasImage={hasImage} />
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent
-            value="discord"
-            className="mt-0 focus-visible:outline-none flex-1 overflow-hidden"
-          >
-            <div className="h-full overflow-y-auto overflow-x-hidden px-2">
-              <div className="min-h-full flex items-center justify-center py-4">
-                <DiscordPreview ogData={ogData} hasImage={hasImage} />
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+        <PreviewImage
+          src={data.image}
+          alt={data.title}
+          className="mt-2 aspect-[1.91/1] w-full rounded-[6px] bg-neutral-800"
+        />
+      </div>
+    </article>
   );
-});
+}
 
-const FacebookPreview = memo(function FacebookPreview({
-  ogData,
-  hasImage,
-}: {
-  ogData: OGData;
-  hasImage: boolean;
-}) {
+function GoogleCard({ data }: { data: CardData }) {
   return (
-    <div className="w-full max-w-none sm:max-w-[500px] mx-auto">
-      <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-800 p-2 sm:p-3">
-        <div className="bg-white dark:bg-gray-900 rounded border shadow-sm overflow-hidden">
-          <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-white text-xs sm:text-sm font-semibold">
-                  FB
-                </span>
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold text-sm sm:text-base text-gray-900 dark:text-gray-100 truncate">
-                  Your Page
-                </p>
-                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                  2 hours ago · 🌐
-                </p>
-              </div>
-            </div>
-            <p className="mt-2 sm:mt-3 text-sm sm:text-base text-gray-900 dark:text-gray-100">
-              Check out this amazing content! 🚀
-            </p>
-          </div>
+    <article className="w-full max-w-[420px]">
+      <div className="rounded-[8px] bg-white p-3">
+        <p className="truncate text-[13px] text-[#202124]">
+          {data.siteName}{" "}
+          <span className="text-[#4d5156]">› {data.host}</span>
+        </p>
+        <h3 className="mt-1 line-clamp-1 text-[18px] leading-snug text-[#1a0dab]">
+          {data.title}
+        </h3>
+        <p className="mt-1 line-clamp-2 text-[13px] text-[#4d5156]">
+          {data.description}
+        </p>
+      </div>
+    </article>
+  );
+}
 
-          <div className="border-b border-gray-200 dark:border-gray-700">
-            {hasImage && (
-              <div className="aspect-[1.91/1] bg-gray-200 dark:bg-gray-700 relative overflow-hidden">
-                <Image
-                  src={
-                    ogData.image ||
-                    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200' viewBox='0 0 400 200'%3E%3Crect width='400' height='200' fill='%23f3f4f6'/%3E%3Ctext x='200' y='100' text-anchor='middle' dy='0.3em' font-family='Arial' font-size='14' fill='%236b7280'%3EImage not found%3C/text%3E%3C/svg%3E"
-                  }
-                  alt={ogData.title || "Preview"}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            )}
-            <div className="p-3 sm:p-4 bg-gray-50 dark:bg-gray-800 border-l-4 border-blue-500">
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wide font-medium">
-                {ogData.siteName || ogData.url || "EXAMPLE.COM"}
-              </p>
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mt-1 text-sm sm:text-base line-clamp-2">
-                {ogData.title || "Page Title"}
-              </h3>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">
-                {ogData.description || "Page description would appear here."}
-              </p>
-            </div>
-          </div>
-
-          <div className="p-2 sm:p-3 bg-white dark:bg-gray-900">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-1 sm:space-x-4">
-                <button className="flex items-center space-x-1 text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800">
-                  <ThumbsUp className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="text-xs sm:text-sm hidden sm:inline">
-                    Like
-                  </span>
-                </button>
-                <button className="flex items-center space-x-1 text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800">
-                  <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="text-xs sm:text-sm hidden sm:inline">
-                    Comment
-                  </span>
-                </button>
-                <button className="flex items-center space-x-1 text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800">
-                  <Share className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="text-xs sm:text-sm hidden sm:inline">
-                    Share
-                  </span>
-                </button>
-              </div>
-            </div>
-          </div>
+function BlueskyCard({ data }: { data: CardData }) {
+  return (
+    <article className="w-full max-w-[420px]">
+      <div className="overflow-hidden rounded-[12px] border border-neutral-200 bg-white">
+        <PreviewImage
+          src={data.image}
+          alt={data.title}
+          className="aspect-[1.91/1] w-full bg-neutral-100"
+        />
+        <div className="px-3 py-2">
+          <h3 className="line-clamp-2 text-[14px] font-semibold">{data.title}</h3>
+          <p className="mt-0.5 line-clamp-2 text-[12px] text-neutral-600">
+            {data.description}
+          </p>
+          <p className="mt-1 text-[12px] text-neutral-500">{data.host}</p>
         </div>
       </div>
-    </div>
+    </article>
   );
-});
-
-const TwitterPreview = memo(function TwitterPreview({
-  ogData,
-  hasImage,
-}: {
-  ogData: OGData;
-  hasImage: boolean;
-}) {
-  const isLargeCard =
-    ogData.twitterCard === "summary_large_image" ||
-    (!ogData.twitterCard && hasImage);
-
-  return (
-    <div className="w-full max-w-none sm:max-w-[500px] mx-auto">
-      <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-black dark:bg-gray-900 p-2 sm:p-3">
-        <div className="bg-black dark:bg-black rounded border-gray-800 dark:border-gray-700 border overflow-hidden">
-          <div className="p-3 sm:p-4 border-b border-gray-800 dark:border-gray-700">
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-white text-xs sm:text-sm font-semibold">
-                  @
-                </span>
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center space-x-1">
-                  <p className="font-semibold text-sm sm:text-base text-white truncate">
-                    Your Account
-                  </p>
-                  <span className="text-blue-400">✓</span>
-                </div>
-                <p className="text-xs sm:text-sm text-gray-500">
-                  @youraccount · 2h
-                </p>
-              </div>
-            </div>
-            <p className="mt-2 sm:mt-3 text-sm sm:text-base text-white">
-              Check out this amazing content! 🚀
-            </p>
-          </div>
-
-          <div className="border border-gray-800 dark:border-gray-700 rounded-lg m-3 overflow-hidden">
-            {hasImage && (
-              <div
-                className={`bg-gray-200 dark:bg-gray-700 relative ${isLargeCard ? "aspect-[2/1]" : "aspect-square w-24 sm:w-32 float-left mr-3"}`}
-              >
-                <Image
-                  src={
-                    ogData.image ||
-                    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200' viewBox='0 0 400 200'%3E%3Crect width='400' height='200' fill='%23374151'/%3E%3Ctext x='200' y='100' text-anchor='middle' dy='0.3em' font-family='Arial' font-size='14' fill='%239ca3af'%3EImage not found%3C/text%3E%3C/svg%3E"
-                  }
-                  alt={ogData.title || "Preview"}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            )}
-            <div className="p-3 sm:p-4 bg-gray-900 border-l-4 border-blue-500">
-              <p className="text-xs sm:text-sm text-gray-400">
-                {ogData.url || "example.com"}
-              </p>
-              <h3 className="font-semibold text-white mt-1 text-sm sm:text-base line-clamp-2">
-                {ogData.twitterTitle || ogData.title || "Page Title"}
-              </h3>
-              <p className="text-xs sm:text-sm text-gray-300 mt-1 line-clamp-2">
-                {ogData.twitterDescription ||
-                  ogData.description ||
-                  "Page description would appear here."}
-              </p>
-            </div>
-          </div>
-
-          <div className="px-3 pb-3 bg-black">
-            <div className="flex items-center space-x-2 sm:space-x-6">
-              <button className="flex items-center space-x-1 text-gray-500 hover:text-blue-400 transition-colors px-2 py-1 rounded hover:bg-gray-900">
-                <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="text-xs sm:text-sm hidden sm:inline">
-                  Reply
-                </span>
-              </button>
-              <button className="flex items-center space-x-1 text-gray-500 hover:text-green-400 transition-colors px-2 py-1 rounded hover:bg-gray-900">
-                <Share className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="text-xs sm:text-sm hidden sm:inline">
-                  Repost
-                </span>
-              </button>
-              <button className="flex items-center space-x-1 text-gray-500 hover:text-red-400 transition-colors px-2 py-1 rounded hover:bg-gray-900">
-                <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="text-xs sm:text-sm hidden sm:inline">
-                  Like
-                </span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-});
-
-const LinkedInPreview = memo(function LinkedInPreview({
-  ogData,
-  hasImage,
-}: {
-  ogData: OGData;
-  hasImage: boolean;
-}) {
-  return (
-    <div className="w-full max-w-none sm:max-w-[500px] mx-auto">
-      <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-blue-50 dark:bg-blue-950 p-2 sm:p-3">
-        <div className="bg-white dark:bg-gray-900 rounded border shadow-sm overflow-hidden">
-          <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-700 rounded flex items-center justify-center flex-shrink-0">
-                <span className="text-white text-xs sm:text-sm font-bold">
-                  in
-                </span>
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold text-sm sm:text-base text-gray-900 dark:text-gray-100 truncate">
-                  Your Name
-                </p>
-                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                  Software Engineer at Company · 2h
-                </p>
-              </div>
-            </div>
-            <p className="mt-2 sm:mt-3 text-sm sm:text-base text-gray-900 dark:text-gray-100">
-              Excited to share this with my network! 💼
-            </p>
-          </div>
-
-          <div className="border-t border-gray-200 dark:border-gray-700">
-            {hasImage && (
-              <div className="aspect-[2/1] bg-gray-200 dark:bg-gray-700 relative">
-                <Image
-                  src={
-                    ogData.image ||
-                    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200' viewBox='0 0 400 200'%3E%3Crect width='400' height='200' fill='%23f3f4f6'/%3E%3Ctext x='200' y='100' text-anchor='middle' dy='0.3em' font-family='Arial' font-size='14' fill='%236b7280'%3EImage not found%3C/text%3E%3C/svg%3E"
-                  }
-                  alt={ogData.title || "Preview"}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            )}
-            <div className="p-3 sm:p-4 border-l-4 border-blue-600">
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base line-clamp-2">
-                {ogData.title || "Page Title"}
-              </h3>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mt-1 line-clamp-3">
-                {ogData.description || "Page description would appear here."}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 font-medium">
-                {ogData.siteName || ogData.url || "example.com"}
-              </p>
-            </div>
-          </div>
-
-          <div className="px-3 sm:px-4 py-2 sm:py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-            <div className="flex items-center space-x-1 sm:space-x-3">
-              <button className="flex items-center space-x-1 text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors px-2 py-1 rounded hover:bg-white dark:hover:bg-gray-700">
-                <ThumbsUp className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="text-xs sm:text-sm hidden sm:inline">
-                  Like
-                </span>
-              </button>
-              <button className="flex items-center space-x-1 text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors px-2 py-1 rounded hover:bg-white dark:hover:bg-gray-700">
-                <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="text-xs sm:text-sm hidden sm:inline">
-                  Comment
-                </span>
-              </button>
-              <button className="flex items-center space-x-1 text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors px-2 py-1 rounded hover:bg-white dark:hover:bg-gray-700">
-                <Share className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="text-xs sm:text-sm hidden sm:inline">
-                  Repost
-                </span>
-              </button>
-              <button className="flex items-center space-x-1 text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors px-2 py-1 rounded hover:bg-white dark:hover:bg-gray-700">
-                <Send className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="text-xs sm:text-sm hidden sm:inline">
-                  Send
-                </span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-});
-
-const DiscordPreview = memo(function DiscordPreview({
-  ogData,
-  hasImage,
-}: {
-  ogData: OGData;
-  hasImage: boolean;
-}) {
-  return (
-    <div className="w-full max-w-none sm:max-w-[500px] mx-auto">
-      <div className="border-2 border-gray-600 dark:border-gray-500 rounded-lg overflow-hidden bg-gray-700 dark:bg-gray-800 p-2 sm:p-3">
-        <div className="bg-gray-800 dark:bg-gray-900 rounded border border-gray-600 overflow-hidden">
-          <div className="p-3 sm:p-4">
-            <div className="flex items-start space-x-2 sm:space-x-3">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-white text-xs sm:text-sm font-bold">
-                  D
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center space-x-2 flex-wrap">
-                  <span className="font-semibold text-white text-sm sm:text-base">
-                    YourUsername
-                  </span>
-                  <span className="text-xs text-gray-400">
-                    Today at 2:30 PM
-                  </span>
-                </div>
-                <p className="text-gray-100 text-sm sm:text-base mt-1">
-                  Check this out! 🎮
-                </p>
-
-                <div className="mt-3 bg-gray-750 border-l-4 border-blue-500 rounded-r p-3 max-w-full sm:max-w-[400px]">
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-blue-400 text-xs sm:text-sm font-semibold">
-                        {ogData.siteName || ogData.url || "EXAMPLE.COM"}
-                      </p>
-                      <h3 className="text-blue-400 font-semibold text-sm sm:text-base mt-1 hover:underline cursor-pointer line-clamp-2">
-                        {ogData.title || "Page Title"}
-                      </h3>
-                      <p className="text-gray-300 text-xs sm:text-sm mt-1 line-clamp-3">
-                        {ogData.description ||
-                          "Page description would appear here."}
-                      </p>
-                    </div>
-                    {hasImage && (
-                      <div className="w-full sm:w-20 h-20 sm:h-20 bg-gray-600 rounded overflow-hidden flex-shrink-0 relative">
-                        <Image
-                          src={
-                            ogData.image ||
-                            "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%234b5563'/%3E%3Ctext x='40' y='40' text-anchor='middle' dy='0.3em' font-family='Arial' font-size='10' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E"
-                          }
-                          alt={ogData.title || "Preview"}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-});
+}
