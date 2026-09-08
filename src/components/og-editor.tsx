@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useTheme } from "next-themes";
 import { OG_TEMPLATES } from "@/lib/og-templates";
-import { copyToClipboard, downloadFile } from "@/lib/utils";
-import { Copy, Download, FileJson, FileText, Type, Upload } from "lucide-react";
+import { copyToClipboard } from "@/lib/utils";
+import { Copy, Upload } from "lucide-react";
 import toast from "react-hot-toast";
 import { logger } from "@/lib/logger";
 
@@ -130,25 +130,6 @@ export function OGEditor({ value, onChange }: OGEditorProps) {
     toast[ok ? "success" : "error"](ok ? "Copied tags" : "Copy failed");
   };
 
-  const handleExport = () => {
-    downloadFile("og-tags.html", value, "text/html");
-    toast.success("Exported HTML");
-  };
-
-  const handleExportJson = () => {
-    const config = {
-      version: "1.0",
-      exportedAt: new Date().toISOString(),
-      ogTags: value,
-    };
-    downloadFile(
-      "og-tags.json",
-      JSON.stringify(config, null, 2),
-      "application/json",
-    );
-    toast.success("Exported JSON");
-  };
-
   const handleImportJson = () => {
     const input = document.createElement("input");
     input.type = "file";
@@ -181,83 +162,46 @@ export function OGEditor({ value, onChange }: OGEditorProps) {
   };
 
   if (!mounted) {
-    return (
-      <div className="h-full min-h-[300px] animate-pulse rounded-lg bg-muted" />
-    );
+    return <div className="h-full animate-pulse rounded-[8px] bg-muted" />;
   }
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="mb-3 flex flex-wrap items-center gap-1.5">
-        {Object.entries(OG_TEMPLATES).map(([key, template]) => (
-          <Button
-            key={key}
-            variant="outline"
-            size="sm"
-            className="h-7 text-xs"
-            onClick={() => {
-              onChange(template.content);
-              toast.success(`${template.name} template loaded`);
-            }}
-          >
-            <FileText className="h-3 w-3" />
-            {template.name}
-          </Button>
-        ))}
-        <div className="ml-auto flex flex-wrap items-center gap-1.5">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-7 text-xs"
-            onClick={() => setUseSimpleEditor((prev) => !prev)}
-          >
-            {useSimpleEditor ? (
-              <FileText className="h-3 w-3" />
-            ) : (
-              <Type className="h-3 w-3" />
-            )}
-            {useSimpleEditor ? "Monaco" : "Plain"}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-7 text-xs"
-            onClick={handleCopy}
-          >
+      <div className="mb-2 flex items-center gap-1.5">
+        <select
+          aria-label="Template"
+          className="h-7 rounded-[6px] border border-input bg-card px-2 text-[12px] outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          defaultValue=""
+          onChange={(event) => {
+            const key = event.target.value;
+            if (!key) return;
+            onChange(OG_TEMPLATES[key].content);
+            toast.success("Template loaded");
+            event.target.value = "";
+          }}
+        >
+          <option value="" disabled>
+            Template
+          </option>
+          {Object.entries(OG_TEMPLATES).map(([key, template]) => (
+            <option key={key} value={key}>
+              {template.name}
+            </option>
+          ))}
+        </select>
+        <div className="ml-auto flex items-center gap-1">
+          <Button variant="ghost" size="sm" onClick={handleCopy}>
             <Copy className="h-3 w-3" />
             Copy
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-7 text-xs"
-            onClick={handleExportJson}
-          >
-            <FileJson className="h-3 w-3" />
-            JSON
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-7 text-xs"
-            onClick={handleExport}
-          >
-            <Download className="h-3 w-3" />
-            HTML
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-7 text-xs"
-            onClick={handleImportJson}
-          >
+          <Button variant="ghost" size="sm" onClick={handleImportJson}>
             <Upload className="h-3 w-3" />
             Import
           </Button>
         </div>
       </div>
 
-      <div className="min-h-[320px] flex-1 overflow-hidden rounded-lg border bg-background lg:min-h-0">
+      <div className="min-h-0 flex-1 overflow-hidden rounded-[8px] border bg-card">
         {useSimpleEditor || editorError ? (
           <Textarea
             value={value}

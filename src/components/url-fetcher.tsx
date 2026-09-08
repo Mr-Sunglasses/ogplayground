@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { loadRecentUrls, pushRecentUrl } from "@/lib/og-storage";
-import { Globe, Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { logger } from "@/lib/logger";
 
@@ -99,7 +99,7 @@ export function UrlFetcher({
 
   const form = (
     <form
-      className="flex gap-2"
+      className="flex gap-1.5"
       onSubmit={(event) => {
         event.preventDefault();
         void fetchUrl();
@@ -107,15 +107,15 @@ export function UrlFetcher({
     >
       <Input
         type="url"
-        placeholder="Fetch tags from example.com"
+        placeholder="example.com"
         value={url}
         onChange={(e) => setUrl(e.target.value)}
         disabled={loading}
-        className="flex-1"
+        className="h-7 flex-1"
         aria-label="Website URL"
       />
-      <Button type="submit" disabled={loading || !url.trim()}>
-        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Fetch"}
+      <Button type="submit" size="sm" disabled={loading || !url.trim()}>
+        {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Go"}
       </Button>
     </form>
   );
@@ -125,17 +125,7 @@ export function UrlFetcher({
   }
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="flex items-center gap-2 text-sm font-semibold">
-          <Globe className="h-4 w-4" />
-          Inspect a live URL
-        </h3>
-        <p className="mt-1 text-xs text-muted-foreground">
-          We fetch the page server-side and extract Open Graph + Twitter tags.
-        </p>
-      </div>
-
+    <div className="space-y-3">
       {form}
 
       {error && (

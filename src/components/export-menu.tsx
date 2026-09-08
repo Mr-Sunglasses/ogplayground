@@ -33,12 +33,12 @@ export function ExportMenu({ ogTags, ogData }: ExportMenuProps) {
 
   return (
     <div className="relative" ref={ref}>
-      <Button variant="outline" size="sm" onClick={() => setOpen((v) => !v)}>
+      <Button variant="ghost" size="sm" onClick={() => setOpen((v) => !v)}>
         Export
-        <ChevronDown className="h-3.5 w-3.5" />
+        <ChevronDown className="h-3 w-3" />
       </Button>
       {open && (
-        <div className="absolute right-0 z-50 mt-1 w-56 rounded-lg border bg-popover p-1 text-popover-foreground shadow-md">
+        <div className="absolute right-0 z-50 mt-1 w-48 rounded-[8px] border bg-popover p-1 text-popover-foreground shadow-lg">
           <button
             type="button"
             className="flex w-full rounded-md px-2.5 py-1.5 text-left text-sm hover:bg-accent"

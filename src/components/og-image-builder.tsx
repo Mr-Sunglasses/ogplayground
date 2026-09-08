@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -574,26 +574,16 @@ export function OGImageBuilder({
   };
 
   return (
-    <Card className="gap-0 py-0 shadow-none">
+    <Card className="gap-0 border-0 bg-transparent py-0 shadow-none">
       <CardHeader className="px-0 pt-0">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center space-x-2 text-base">
-            <ImageIcon className="h-5 w-5" />
-            <span>OG Image Builder</span>
-          </CardTitle>
-          <div className="flex space-x-2">
-            <Button variant="outline" size="sm" onClick={fillExample}>
-              Example
-            </Button>
-            <Button variant="outline" size="sm" onClick={clearForm}>
-              Clear
-            </Button>
-          </div>
+        <div className="flex items-center justify-end gap-1">
+          <Button variant="ghost" size="sm" onClick={fillExample}>
+            Example
+          </Button>
+          <Button variant="ghost" size="sm" onClick={clearForm}>
+            Clear
+          </Button>
         </div>
-        <p className="text-sm text-muted-foreground">
-          Design a card, download a PNG, or insert a hosted /api/og URL into
-          your tags
-        </p>
       </CardHeader>
 
       <CardContent className="space-y-6 px-0 pb-0">

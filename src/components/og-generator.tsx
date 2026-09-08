@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { CharCount } from "@/components/char-count";
 import { generateOGTags, type OGData } from "@/lib/og-parser";
-import { Wand2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface OGGeneratorProps {
@@ -16,7 +15,7 @@ interface OGGeneratorProps {
 }
 
 const selectClass =
-  "h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]";
+  "h-8 w-full rounded-[6px] border border-input bg-card px-2.5 text-[13px] outline-none focus-visible:ring-1 focus-visible:ring-ring";
 
 function fromOg(ogData: OGData) {
   return {
@@ -72,15 +71,9 @@ export function OGGenerator({ ogData, onGenerate }: OGGeneratorProps) {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h3 className="text-sm font-semibold">Form generator</h3>
-          <p className="text-xs text-muted-foreground">
-            Fill the fields — previews update as you type
-          </p>
-        </div>
-        <label className="flex items-center gap-2 text-xs">
+    <div className="space-y-3">
+      <div className="flex items-center justify-end">
+        <label className="flex items-center gap-2 text-[12px] text-muted-foreground">
           <Switch checked={live} onCheckedChange={setLive} />
           Live
         </label>
@@ -88,7 +81,7 @@ export function OGGenerator({ ogData, onGenerate }: OGGeneratorProps) {
 
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-medium" htmlFor="og-title">
+          <label className="text-[12px] font-medium" htmlFor="og-title">
             Title
           </label>
           <CharCount value={formData.title} min={30} max={60} />
@@ -103,7 +96,7 @@ export function OGGenerator({ ogData, onGenerate }: OGGeneratorProps) {
 
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-medium" htmlFor="og-description">
+          <label className="text-[12px] font-medium" htmlFor="og-description">
             Description
           </label>
           <CharCount value={formData.description} min={50} max={160} />
@@ -118,7 +111,7 @@ export function OGGenerator({ ogData, onGenerate }: OGGeneratorProps) {
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-sm font-medium" htmlFor="og-image">
+        <label className="text-[12px] font-medium" htmlFor="og-image">
           Image URL
         </label>
         <Input
@@ -128,14 +121,12 @@ export function OGGenerator({ ogData, onGenerate }: OGGeneratorProps) {
           value={formData.image}
           onChange={(e) => update("image", e.target.value)}
         />
-        <p className="text-xs text-muted-foreground">
-          1200×630, JPG/PNG/WebP, HTTPS
-        </p>
+        <p className="text-[11px] text-muted-foreground">1200×630 · HTTPS</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <label className="text-sm font-medium" htmlFor="og-url">
+          <label className="text-[12px] font-medium" htmlFor="og-url">
             Canonical URL
           </label>
           <Input
@@ -147,7 +138,7 @@ export function OGGenerator({ ogData, onGenerate }: OGGeneratorProps) {
           />
         </div>
         <div className="space-y-1.5">
-          <label className="text-sm font-medium" htmlFor="og-site">
+          <label className="text-[12px] font-medium" htmlFor="og-site">
             Site name
           </label>
           <Input
@@ -161,7 +152,7 @@ export function OGGenerator({ ogData, onGenerate }: OGGeneratorProps) {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <label className="text-sm font-medium" htmlFor="og-type">
+          <label className="text-[12px] font-medium" htmlFor="og-type">
             Type
           </label>
           <select
@@ -179,7 +170,7 @@ export function OGGenerator({ ogData, onGenerate }: OGGeneratorProps) {
           </select>
         </div>
         <div className="space-y-1.5">
-          <label className="text-sm font-medium" htmlFor="og-twitter">
+          <label className="text-[12px] font-medium" htmlFor="og-twitter">
             Twitter card
           </label>
           <select
@@ -198,8 +189,7 @@ export function OGGenerator({ ogData, onGenerate }: OGGeneratorProps) {
 
       <div className="flex gap-2">
         <Button onClick={generateTags} className="flex-1">
-          <Wand2 className="h-4 w-4" />
-          Apply to editor
+          Apply
         </Button>
         <Button
           variant="outline"

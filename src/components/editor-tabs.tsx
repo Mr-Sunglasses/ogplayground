@@ -4,7 +4,6 @@ import { type ReactNode } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { Button } from "@/components/ui/button";
-import { Bot, Code2, Globe, ImageIcon, ShieldCheck, Wand2 } from "lucide-react";
 
 interface EditorTabsProps {
   value: string;
@@ -18,12 +17,12 @@ interface EditorTabsProps {
 }
 
 const TABS = [
-  { value: "editor", label: "Editor", icon: Code2 },
-  { value: "generator", label: "Form", icon: Wand2 },
-  { value: "image-builder", label: "Image", icon: ImageIcon },
-  { value: "fetcher", label: "Fetch", icon: Globe },
-  { value: "validation", label: "Audit", icon: ShieldCheck },
-  { value: "agents", label: "Agents", icon: Bot },
+  { value: "editor", label: "Editor" },
+  { value: "generator", label: "Form" },
+  { value: "image-builder", label: "Image" },
+  { value: "fetcher", label: "Fetch" },
+  { value: "validation", label: "Audit" },
+  { value: "agents", label: "Agents" },
 ] as const;
 
 export function EditorTabs({
@@ -37,19 +36,10 @@ export function EditorTabs({
   agents,
 }: EditorTabsProps) {
   const editorFallback = (
-    <div className="flex h-full items-center justify-center p-4">
-      <div className="text-center">
-        <p className="mb-2 text-sm text-muted-foreground">
-          Editor failed to load
-        </p>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => window.location.reload()}
-        >
-          Reload page
-        </Button>
-      </div>
+    <div className="flex h-full items-center justify-center">
+      <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+        Reload
+      </Button>
     </div>
   );
 
@@ -57,22 +47,14 @@ export function EditorTabs({
     <Tabs
       value={value}
       onValueChange={onValueChange}
-      className="flex h-full min-h-0 flex-col gap-3"
+      className="flex h-full min-h-0 flex-col gap-2"
     >
-      <TabsList className="flex h-9 w-full justify-start overflow-x-auto">
-        {TABS.map((tab) => {
-          const Icon = tab.icon;
-          return (
-            <TabsTrigger
-              key={tab.value}
-              value={tab.value}
-              className="px-3 text-xs sm:text-sm"
-            >
-              <Icon className="h-3.5 w-3.5" />
-              {tab.label}
-            </TabsTrigger>
-          );
-        })}
+      <TabsList className="w-full">
+        {TABS.map((tab) => (
+          <TabsTrigger key={tab.value} value={tab.value}>
+            {tab.label}
+          </TabsTrigger>
+        ))}
       </TabsList>
 
       <TabsContent
@@ -82,28 +64,16 @@ export function EditorTabs({
       >
         <ErrorBoundary fallback={editorFallback}>{editor}</ErrorBoundary>
       </TabsContent>
-      <TabsContent
-        value="generator"
-        className="mt-0 min-h-0 flex-1 overflow-auto"
-      >
+      <TabsContent value="generator" className="mt-0 min-h-0 flex-1 overflow-auto">
         <ErrorBoundary>{generator}</ErrorBoundary>
       </TabsContent>
-      <TabsContent
-        value="image-builder"
-        className="mt-0 min-h-0 flex-1 overflow-auto"
-      >
+      <TabsContent value="image-builder" className="mt-0 min-h-0 flex-1 overflow-auto">
         <ErrorBoundary>{imageBuilder}</ErrorBoundary>
       </TabsContent>
-      <TabsContent
-        value="fetcher"
-        className="mt-0 min-h-0 flex-1 overflow-auto"
-      >
+      <TabsContent value="fetcher" className="mt-0 min-h-0 flex-1 overflow-auto">
         <ErrorBoundary>{fetcher}</ErrorBoundary>
       </TabsContent>
-      <TabsContent
-        value="validation"
-        className="mt-0 min-h-0 flex-1 overflow-auto"
-      >
+      <TabsContent value="validation" className="mt-0 min-h-0 flex-1 overflow-auto">
         <ErrorBoundary>{validation}</ErrorBoundary>
       </TabsContent>
       <TabsContent value="agents" className="mt-0 min-h-0 flex-1 overflow-auto">

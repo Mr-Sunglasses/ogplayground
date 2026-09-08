@@ -12,10 +12,11 @@ export function Toaster() {
 
   return (
     <HotToaster
-      position="top-right"
+      position="top-center"
       toastOptions={{
-        duration: 4000,
-        className: "bg-background border-border text-foreground",
+        duration: 2500,
+        className:
+          "bg-card border-border text-foreground text-[13px] rounded-[8px] shadow-lg",
       }}
     />
   );
